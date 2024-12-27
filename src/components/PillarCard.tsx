@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { RatingCircle } from "./RatingCircle";
-import { Slider } from "@/components/ui/slider";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import type { KeyPractice, RatingLevel, Pillar } from "@/types/ratings";
 
-interface PillarCardProps {
-  title: string;
-  description: string;
-  color: string;
+interface PillarCardProps extends Pillar {
   className?: string;
 }
 
@@ -14,9 +12,20 @@ export const PillarCard = ({
   title,
   description,
   color,
+  keyPractices,
   className,
 }: PillarCardProps) => {
-  const [rating, setRating] = useState(0);
+  const [practices, setPractices] = useState<KeyPractice[]>(keyPractices);
+
+  const handleRatingChange = (practiceIndex: number, value: RatingLevel) => {
+    const updatedPractices = [...practices];
+    updatedPractices[practiceIndex] = {
+      ...practices[practiceIndex],
+      rating: value,
+    };
+    setPractices(updatedPractices);
+    console.log(`Updated ${title} - ${practices[practiceIndex].name}: ${value}`);
+  };
 
   return (
     <div
@@ -25,21 +34,37 @@ export const PillarCard = ({
         className
       )}
     >
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-xl font-semibold">{title}</h3>
-            <p className="text-sm text-gray-500">{description}</p>
-          </div>
-          <RatingCircle value={rating} color={color} size={80} />
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold" style={{ color }}>
+            {title}
+          </h3>
+          <p className="text-sm text-gray-500">{description}</p>
         </div>
-        <Slider
-          value={[rating]}
-          onValueChange={(value) => setRating(value[0])}
-          max={10}
-          step={1}
-          className="mt-4"
-        />
+        
+        <div className="space-y-6">
+          {practices.map((practice, index) => (
+            <div key={practice.name} className="space-y-3">
+              <h4 className="font-medium text-sm">{practice.name}</h4>
+              <RadioGroup
+                value={practice.rating || ""}
+                onValueChange={(value) => 
+                  handleRatingChange(index, value as RatingLevel)
+                }
+                className="flex flex-col space-y-1"
+              >
+                {["Largely in Place", "Somewhat in Place", "Not in Place"].map(
+                  (level) => (
+                    <div key={level} className="flex items-center space-x-2">
+                      <RadioGroupItem value={level} id={`${practice.name}-${level}`} />
+                      <Label htmlFor={`${practice.name}-${level}`}>{level}</Label>
+                    </div>
+                  )
+                )}
+              </RadioGroup>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

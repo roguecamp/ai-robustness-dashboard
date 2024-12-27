@@ -1,35 +1,65 @@
 import { PillarCard } from "./PillarCard";
+import type { Pillar } from "@/types/ratings";
 
-const pillars = [
+const pillars: Pillar[] = [
   {
     title: "People",
     description: "Team expertise and AI literacy",
     color: "#FF6B6B",
+    keyPractices: [
+      { name: "Training and Upskilling", rating: null },
+      { name: "Collaboration", rating: null },
+      { name: "Change Management", rating: null },
+    ],
   },
   {
     title: "Strategy",
     description: "AI implementation and business alignment",
     color: "#4ECDC4",
+    keyPractices: [
+      { name: "Business Alignment", rating: null },
+      { name: "Scalability and Adoption", rating: null },
+    ],
   },
   {
     title: "Data",
     description: "Data quality and management practices",
     color: "#45B7D1",
+    keyPractices: [
+      { name: "Data Quality", rating: null },
+      { name: "Data Governance", rating: null },
+      { name: "Data Security", rating: null },
+    ],
   },
   {
     title: "Legal",
     description: "Compliance and regulatory adherence",
     color: "#96CEB4",
+    keyPractices: [
+      { name: "Regulatory Compliance", rating: null },
+      { name: "Risk Management", rating: null },
+      { name: "Privacy Protection", rating: null },
+    ],
   },
   {
     title: "Solution",
     description: "AI system effectiveness and reliability",
     color: "#FFEEAD",
+    keyPractices: [
+      { name: "System Performance", rating: null },
+      { name: "Reliability", rating: null },
+      { name: "Maintainability", rating: null },
+    ],
   },
   {
     title: "Security",
     description: "System security and risk management",
     color: "#D4A5A5",
+    keyPractices: [
+      { name: "Access Control", rating: null },
+      { name: "Threat Detection", rating: null },
+      { name: "Incident Response", rating: null },
+    ],
   },
 ];
 
@@ -43,7 +73,7 @@ export const Dashboard = () => {
             Evaluate your organization's AI implementation across key pillars
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {pillars.map((pillar, index) => (
             <div
               key={pillar.title}
