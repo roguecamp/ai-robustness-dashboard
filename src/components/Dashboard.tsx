@@ -15,7 +15,7 @@ const pillars: Pillar[] = [
   {
     title: "Strategy",
     description: "AI implementation and business alignment",
-    color: "#4ECDC4",
+    color: "#9b87f5",
     keyPractices: [
       { name: "Business Alignment", rating: null },
       { name: "Scalability and Adoption", rating: null },
@@ -45,7 +45,7 @@ const pillars: Pillar[] = [
   {
     title: "Solution",
     description: "AI system effectiveness and reliability",
-    color: "#FFEEAD",
+    color: "#222222",
     keyPractices: [
       { name: "System Performance", rating: null },
       { name: "Reliability", rating: null },
