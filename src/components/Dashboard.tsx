@@ -27,9 +27,9 @@ const pillars: Pillar[] = [
     description: "Data quality and management practices",
     color: "#45B7D1",
     keyPractices: [
-      { name: "Data Quality", rating: null },
+      { name: "Data Acquisition and Quality", rating: null },
       { name: "Data Governance", rating: null },
-      { name: "Data Security", rating: null },
+      { name: "Data Privacy", rating: null },
     ],
   },
   {
