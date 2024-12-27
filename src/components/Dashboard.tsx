@@ -19,6 +19,7 @@ const pillars: Pillar[] = [
     keyPractices: [
       { name: "Business Alignment", rating: null },
       { name: "Scalability and Adoption", rating: null },
+      { name: "Innovation Framework", rating: null },
     ],
   },
   {
