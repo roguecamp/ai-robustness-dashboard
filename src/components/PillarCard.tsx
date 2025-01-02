@@ -38,6 +38,8 @@ export const PillarCard = ({
     }
   };
 
+  const isSecurityPillar = title === "Security";
+
   return (
     <div
       className={cn(
@@ -53,7 +55,10 @@ export const PillarCard = ({
           <p className="text-sm text-gray-500">{description}</p>
         </div>
         
-        <div className="space-y-4">
+        <div className={cn(
+          "space-y-4",
+          isSecurityPillar && "grid grid-cols-5 gap-4 space-y-0"
+        )}>
           {practices.map((practice, index) => (
             <div key={practice.name} className="space-y-2">
               <div
