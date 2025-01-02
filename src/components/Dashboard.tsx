@@ -97,8 +97,8 @@ export const Dashboard = () => {
             ))}
           </div>
           {/* Second row with Security pillar */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-start-2 animate-scale-in" style={{ animationDelay: '500ms' }}>
+          <div className="grid grid-cols-1 gap-6">
+            <div className="animate-scale-in" style={{ animationDelay: '500ms' }}>
               <PillarCard {...pillars[5]} />
             </div>
           </div>
