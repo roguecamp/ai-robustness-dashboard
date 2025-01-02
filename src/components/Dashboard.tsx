@@ -75,12 +75,34 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="text-center space-y-2 animate-slide-up">
-          <h1 className="text-4xl font-bold">AI Robustness Rating</h1>
-          <p className="text-gray-500">
-            Evaluate your organization's AI implementation across key pillars
-          </p>
+        <div className="relative">
+          <div className="text-center space-y-2 animate-slide-up">
+            <h1 className="text-4xl font-bold">AI Robustness Rating</h1>
+            <p className="text-gray-500">
+              Evaluate your organization's AI implementation across key pillars
+            </p>
+          </div>
+          
+          {/* Rating Key */}
+          <div className="absolute top-0 right-0 bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-gray-100">
+            <div className="text-sm font-medium mb-2">Rating Key</div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-green-700"></div>
+                <span className="text-sm">Largely in Place</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-green-300"></div>
+                <span className="text-sm">Somewhat in Place</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-white border border-gray-200"></div>
+                <span className="text-sm">Not in Place</span>
+              </div>
+            </div>
+          </div>
         </div>
+
         <div className="space-y-6">
           {/* First row with 5 pillars */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
