@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { KeyPractice, RatingLevel, Pillar } from "@/types/ratings";
 
@@ -27,6 +25,19 @@ export const PillarCard = ({
     console.log(`Updated ${title} - ${practices[practiceIndex].name}: ${value}`);
   };
 
+  const getRatingColor = (rating: RatingLevel | null) => {
+    switch (rating) {
+      case "Largely in Place":
+        return "bg-green-700 text-white";
+      case "Somewhat in Place":
+        return "bg-green-300";
+      case "Not in Place":
+        return "bg-white border border-gray-200";
+      default:
+        return "bg-white border border-gray-200";
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -42,26 +53,27 @@ export const PillarCard = ({
           <p className="text-sm text-gray-500">{description}</p>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           {practices.map((practice, index) => (
-            <div key={practice.name} className="space-y-3">
-              <h4 className="font-medium text-sm">{practice.name}</h4>
-              <RadioGroup
-                value={practice.rating || ""}
-                onValueChange={(value) => 
-                  handleRatingChange(index, value as RatingLevel)
-                }
-                className="flex flex-col space-y-1"
-              >
-                {["Largely in Place", "Somewhat in Place", "Not in Place"].map(
-                  (level) => (
-                    <div key={level} className="flex items-center space-x-2">
-                      <RadioGroupItem value={level} id={`${practice.name}-${level}`} />
-                      <Label htmlFor={`${practice.name}-${level}`}>{level}</Label>
-                    </div>
-                  )
+            <div key={practice.name} className="space-y-2">
+              <div
+                className={cn(
+                  "p-3 rounded-lg cursor-pointer transition-colors duration-200",
+                  getRatingColor(practice.rating)
                 )}
-              </RadioGroup>
+                onClick={() => {
+                  const ratings: RatingLevel[] = [
+                    "Largely in Place",
+                    "Somewhat in Place",
+                    "Not in Place",
+                  ];
+                  const currentIndex = ratings.indexOf(practice.rating || "Not in Place");
+                  const nextIndex = (currentIndex + 1) % ratings.length;
+                  handleRatingChange(index, ratings[nextIndex]);
+                }}
+              >
+                <h4 className="font-medium text-sm">{practice.name}</h4>
+              </div>
             </div>
           ))}
         </div>
