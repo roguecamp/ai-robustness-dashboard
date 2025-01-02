@@ -74,18 +74,27 @@ export const Dashboard = () => {
             Evaluate your organization's AI implementation across key pillars
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {pillars.map((pillar, index) => (
-            <div
-              key={pillar.title}
-              className="animate-scale-in"
-              style={{
-                animationDelay: `${index * 100}ms`,
-              }}
-            >
-              <PillarCard {...pillar} />
+        <div className="space-y-6">
+          {/* First row with 5 pillars */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            {pillars.slice(0, 5).map((pillar, index) => (
+              <div
+                key={pillar.title}
+                className="animate-scale-in"
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                }}
+              >
+                <PillarCard {...pillar} />
+              </div>
+            ))}
+          </div>
+          {/* Second row with Security pillar */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-start-2 animate-scale-in" style={{ animationDelay: '500ms' }}>
+              <PillarCard {...pillars[5]} />
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </div>
