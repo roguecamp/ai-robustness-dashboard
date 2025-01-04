@@ -1,5 +1,10 @@
+import { useState } from "react";
 import { PillarCard } from "./PillarCard";
 import type { Pillar } from "@/types/ratings";
+import { Input } from "./ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 const pillars: Pillar[] = [
   {
@@ -72,18 +77,70 @@ const pillars: Pillar[] = [
 ];
 
 export const Dashboard = () => {
+  const [projectName, setProjectName] = useState("");
+  const [assessmentDate, setAssessmentDate] = useState(format(new Date(), "yyyy-MM-dd"));
+
+  const handleSaveRatings = async (pillarTitle: string, practices: { name: string; rating: string | null }[]) => {
+    try {
+      const promises = practices.map(practice => 
+        supabase.from("ratings").insert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: pillarTitle,
+          practice_name: practice.name,
+          rating: practice.rating
+        })
+      );
+      
+      await Promise.all(promises);
+      console.log(`Saved ratings for ${pillarTitle}`);
+      toast.success(`Saved ratings for ${pillarTitle}`);
+    } catch (error) {
+      console.error("Error saving ratings:", error);
+      toast.error("Failed to save ratings");
+    }
+  };
+
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex justify-between items-start mb-8">
-          <div className="text-center">
+          <div>
             <h1 className="text-4xl font-bold">AI Robustness Rating</h1>
             <p className="text-gray-500">
               Evaluate your organization's AI implementation across key pillars
             </p>
+            <div className="mt-4 space-y-4">
+              <div>
+                <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Project Name (max 20 characters)
+                </label>
+                <Input
+                  id="projectName"
+                  type="text"
+                  maxLength={20}
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  className="max-w-xs"
+                  placeholder="Enter project name"
+                />
+              </div>
+              <div>
+                <label htmlFor="assessmentDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  Assessment Date
+                </label>
+                <Input
+                  id="assessmentDate"
+                  type="date"
+                  value={assessmentDate}
+                  onChange={(e) => setAssessmentDate(e.target.value)}
+                  className="max-w-xs"
+                />
+              </div>
+            </div>
           </div>
           
-          {/* Rating Key - Now positioned in the flex container */}
+          {/* Rating Key */}
           <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-gray-100 sticky top-4">
             <div className="text-sm font-medium mb-2">Rating Key</div>
             <div className="space-y-2">
@@ -114,14 +171,14 @@ export const Dashboard = () => {
                   animationDelay: `${index * 100}ms`,
                 }}
               >
-                <PillarCard {...pillar} />
+                <PillarCard {...pillar} onSave={handleSaveRatings} />
               </div>
             ))}
           </div>
           {/* Second row with Security pillar */}
           <div className="grid grid-cols-1 gap-6">
             <div className="animate-scale-in" style={{ animationDelay: '500ms' }}>
-              <PillarCard {...pillars[5]} />
+              <PillarCard {...pillars[5]} onSave={handleSaveRatings} />
             </div>
           </div>
         </div>
