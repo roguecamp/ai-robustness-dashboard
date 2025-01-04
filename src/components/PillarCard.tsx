@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { KeyPractice, RatingLevel, Pillar } from "@/types/ratings";
-import { Button } from "./ui/button";
 
 interface PillarCardProps extends Pillar {
   className?: string;
-  onSave?: (pillarTitle: string, practices: KeyPractice[]) => void;
+  onUpdate?: (pillarTitle: string, practices: KeyPractice[]) => void;
 }
 
 export const PillarCard = ({
@@ -14,7 +13,7 @@ export const PillarCard = ({
   color,
   keyPractices,
   className,
-  onSave,
+  onUpdate,
 }: PillarCardProps) => {
   const [practices, setPractices] = useState<KeyPractice[]>(keyPractices);
 
@@ -25,13 +24,10 @@ export const PillarCard = ({
       rating: value,
     };
     setPractices(updatedPractices);
-    console.log(`Updated ${title} - ${practices[practiceIndex].name}: ${value}`);
-  };
-
-  const handleSave = () => {
-    if (onSave) {
-      onSave(title, practices);
+    if (onUpdate) {
+      onUpdate(title, updatedPractices);
     }
+    console.log(`Updated ${title} - ${practices[practiceIndex].name}: ${value}`);
   };
 
   const getRatingColor = (rating: RatingLevel | null) => {
@@ -91,14 +87,6 @@ export const PillarCard = ({
             </div>
           ))}
         </div>
-
-        <Button 
-          onClick={handleSave}
-          className="w-full"
-          variant="outline"
-        >
-          Save Ratings
-        </Button>
       </div>
     </div>
   );

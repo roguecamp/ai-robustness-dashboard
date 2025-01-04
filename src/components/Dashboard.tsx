@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { Button } from "./ui/button";
 
 const pillars: Pillar[] = [
   {
@@ -79,22 +80,35 @@ const pillars: Pillar[] = [
 export const Dashboard = () => {
   const [projectName, setProjectName] = useState("");
   const [assessmentDate, setAssessmentDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [pillarRatings, setPillarRatings] = useState<Record<string, { name: string; rating: string | null }[]>>({});
 
-  const handleSaveRatings = async (pillarTitle: string, practices: { name: string; rating: string | null }[]) => {
+  const handleUpdateRatings = (pillarTitle: string, practices: { name: string; rating: string | null }[]) => {
+    setPillarRatings(prev => ({
+      ...prev,
+      [pillarTitle]: practices
+    }));
+  };
+
+  const handleSaveAllRatings = async () => {
     try {
-      const promises = practices.map(practice => 
-        supabase.from("ratings").insert({
-          project_name: projectName,
-          assessment_date: assessmentDate,
-          pillar_title: pillarTitle,
-          practice_name: practice.name,
-          rating: practice.rating
-        })
-      );
+      const allPromises: Promise<any>[] = [];
       
-      await Promise.all(promises);
-      console.log(`Saved ratings for ${pillarTitle}`);
-      toast.success(`Saved ratings for ${pillarTitle}`);
+      Object.entries(pillarRatings).forEach(([pillarTitle, practices]) => {
+        practices.forEach(practice => {
+          allPromises.push(
+            supabase.from("ratings").insert({
+              project_name: projectName,
+              assessment_date: assessmentDate,
+              pillar_title: pillarTitle,
+              practice_name: practice.name,
+              rating: practice.rating
+            })
+          );
+        });
+      });
+      
+      await Promise.all(allPromises);
+      toast.success("Successfully saved all ratings");
     } catch (error) {
       console.error("Error saving ratings:", error);
       toast.error("Failed to save ratings");
@@ -171,16 +185,27 @@ export const Dashboard = () => {
                   animationDelay: `${index * 100}ms`,
                 }}
               >
-                <PillarCard {...pillar} onSave={handleSaveRatings} />
+                <PillarCard {...pillar} onUpdate={handleUpdateRatings} />
               </div>
             ))}
           </div>
           {/* Second row with Security pillar */}
           <div className="grid grid-cols-1 gap-6">
             <div className="animate-scale-in" style={{ animationDelay: '500ms' }}>
-              <PillarCard {...pillars[5]} onSave={handleSaveRatings} />
+              <PillarCard {...pillars[5]} onUpdate={handleUpdateRatings} />
             </div>
           </div>
+        </div>
+
+        {/* Save All Button */}
+        <div className="flex justify-center pt-8">
+          <Button 
+            onClick={handleSaveAllRatings}
+            className="px-8"
+            size="lg"
+          >
+            Save All Ratings
+          </Button>
         </div>
       </div>
     </div>
