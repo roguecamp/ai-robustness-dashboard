@@ -95,8 +95,7 @@ export const Dashboard = () => {
       
       Object.entries(pillarRatings).forEach(([pillarTitle, practices]) => {
         practices.forEach(practice => {
-          // We need to call .select() to properly return a Promise
-          const promise = supabase
+          const { data, error } = supabase
             .from("ratings")
             .insert({
               project_name: projectName,
@@ -106,6 +105,12 @@ export const Dashboard = () => {
               rating: practice.rating
             })
             .select();
+
+          // Convert the Supabase query to a proper Promise
+          const promise = new Promise((resolve, reject) => {
+            if (error) reject(error);
+            else resolve(data);
+          });
             
           allPromises.push(promise);
         });
