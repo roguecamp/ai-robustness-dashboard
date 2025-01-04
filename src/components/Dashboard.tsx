@@ -95,15 +95,19 @@ export const Dashboard = () => {
       
       Object.entries(pillarRatings).forEach(([pillarTitle, practices]) => {
         practices.forEach(practice => {
-          allPromises.push(
-            supabase.from("ratings").insert({
+          // We need to call .select() to properly return a Promise
+          const promise = supabase
+            .from("ratings")
+            .insert({
               project_name: projectName,
               assessment_date: assessmentDate,
               pillar_title: pillarTitle,
               practice_name: practice.name,
               rating: practice.rating
             })
-          );
+            .select();
+            
+          allPromises.push(promise);
         });
       });
       
