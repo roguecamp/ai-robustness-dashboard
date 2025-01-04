@@ -94,20 +94,19 @@ export const Dashboard = () => {
       const allPromises: Promise<any>[] = [];
       
       Object.entries(pillarRatings).forEach(([pillarTitle, practices]) => {
-        practices.forEach(practice => {
-          const { data, error } = supabase
-            .from("ratings")
-            .insert({
-              project_name: projectName,
-              assessment_date: assessmentDate,
-              pillar_title: pillarTitle,
-              practice_name: practice.name,
-              rating: practice.rating
-            })
-            .select();
+        practices.forEach(async (practice) => {
+          const promise = new Promise(async (resolve, reject) => {
+            const { data, error } = await supabase
+              .from("ratings")
+              .insert({
+                project_name: projectName,
+                assessment_date: assessmentDate,
+                pillar_title: pillarTitle,
+                practice_name: practice.name,
+                rating: practice.rating
+              })
+              .select();
 
-          // Convert the Supabase query to a proper Promise
-          const promise = new Promise((resolve, reject) => {
             if (error) reject(error);
             else resolve(data);
           });
