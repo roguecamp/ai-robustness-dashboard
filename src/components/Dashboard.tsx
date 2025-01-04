@@ -43,9 +43,9 @@ const pillars: Pillar[] = [
     description: "Compliance and regulatory adherence",
     color: "#96CEB4",
     keyPractices: [
-      { name: "Regulatory Compliance", rating: null },
-      { name: "Risk Management", rating: null },
-      { name: "Privacy Protection", rating: null },
+      { name: "Intellectual Property", rating: null },
+      { name: "Ethical Considerations", rating: null },
+      { name: "Compliance and Regulation", rating: null },
     ],
   },
   {
@@ -53,9 +53,9 @@ const pillars: Pillar[] = [
     description: "AI system effectiveness and reliability",
     color: "#222222",
     keyPractices: [
-      { name: "System Performance", rating: null },
-      { name: "Reliability", rating: null },
-      { name: "Maintainability", rating: null },
+      { name: "Infrastructure", rating: null },
+      { name: "Model Development and Training", rating: null },
+      { name: "Deployment and Monitoring", rating: null },
     ],
   },
   {
