@@ -75,16 +75,16 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="relative">
-          <div className="text-center space-y-2 animate-slide-up">
+        <div className="flex justify-between items-start mb-8">
+          <div className="text-center">
             <h1 className="text-4xl font-bold">AI Robustness Rating</h1>
             <p className="text-gray-500">
               Evaluate your organization's AI implementation across key pillars
             </p>
           </div>
           
-          {/* Rating Key */}
-          <div className="absolute top-0 right-0 bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-gray-100">
+          {/* Rating Key - Now positioned in the flex container */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-gray-100 sticky top-4">
             <div className="text-sm font-medium mb-2">Rating Key</div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
