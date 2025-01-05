@@ -24,9 +24,14 @@ export const PillarCard = ({
   const [practices, setPractices] = useState<KeyPractice[]>(keyPractices);
 
   const handlePracticeClick = (practice: KeyPractice, index: number) => {
-    if (title === "People" && practice.name === "Training and Upskilling") {
-      navigate(`/training-aspects?project=${projectName}&date=${assessmentDate}`);
-      return;
+    if (title === "People") {
+      if (practice.name === "Training and Upskilling") {
+        navigate(`/training-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      } else if (practice.name === "Collaboration") {
+        navigate(`/collaboration-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      }
     }
 
     const ratings: RatingLevel[] = [

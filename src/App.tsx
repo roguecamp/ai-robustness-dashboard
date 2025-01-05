@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import TrainingAspects from "./pages/TrainingAspects";
+import CollaborationAspects from "./pages/CollaborationAspects";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/training-aspects" element={<TrainingAspects />} />
+          <Route path="/collaboration-aspects" element={<CollaborationAspects />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

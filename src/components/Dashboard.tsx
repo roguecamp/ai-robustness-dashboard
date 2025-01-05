@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { PillarCard } from "./PillarCard";
 import type { Pillar } from "@/types/ratings";
-import { Input } from "./ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Button } from "./ui/button";
+import { ProjectInfo } from "./dashboard/ProjectInfo";
+import { RatingKey } from "./dashboard/RatingKey";
 
 const pillars: Pillar[] = [
   {
@@ -132,58 +133,17 @@ export const Dashboard = () => {
             <p className="text-gray-500">
               Evaluate your organization's AI implementation across key pillars
             </p>
-            <div className="mt-4 space-y-4">
-              <div>
-                <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Project Name (max 20 characters)
-                </label>
-                <Input
-                  id="projectName"
-                  type="text"
-                  maxLength={20}
-                  value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
-                  className="max-w-xs"
-                  placeholder="Enter project name"
-                />
-              </div>
-              <div>
-                <label htmlFor="assessmentDate" className="block text-sm font-medium text-gray-700 mb-1">
-                  Assessment Date
-                </label>
-                <Input
-                  id="assessmentDate"
-                  type="date"
-                  value={assessmentDate}
-                  onChange={(e) => setAssessmentDate(e.target.value)}
-                  className="max-w-xs"
-                />
-              </div>
-            </div>
+            <ProjectInfo
+              projectName={projectName}
+              setProjectName={setProjectName}
+              assessmentDate={assessmentDate}
+              setAssessmentDate={setAssessmentDate}
+            />
           </div>
-          
-          {/* Rating Key */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-gray-100 sticky top-4">
-            <div className="text-sm font-medium mb-2">Rating Key</div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-700"></div>
-                <span className="text-sm">Largely in Place</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-300"></div>
-                <span className="text-sm">Somewhat in Place</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-white border border-gray-200"></div>
-                <span className="text-sm">Not in Place</span>
-              </div>
-            </div>
-          </div>
+          <RatingKey />
         </div>
 
         <div className="space-y-6">
-          {/* First row with 5 pillars */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {pillars.slice(0, 5).map((pillar, index) => (
               <div
@@ -202,7 +162,6 @@ export const Dashboard = () => {
               </div>
             ))}
           </div>
-          {/* Second row with Security pillar */}
           <div className="grid grid-cols-1 gap-6">
             <div className="animate-scale-in" style={{ animationDelay: '500ms' }}>
               <PillarCard 
