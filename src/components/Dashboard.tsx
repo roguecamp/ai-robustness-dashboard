@@ -193,19 +193,28 @@ export const Dashboard = () => {
                   animationDelay: `${index * 100}ms`,
                 }}
               >
-                <PillarCard {...pillar} onUpdate={handleUpdateRatings} />
+                <PillarCard 
+                  {...pillar} 
+                  onUpdate={handleUpdateRatings}
+                  projectName={projectName}
+                  assessmentDate={assessmentDate}
+                />
               </div>
             ))}
           </div>
           {/* Second row with Security pillar */}
           <div className="grid grid-cols-1 gap-6">
             <div className="animate-scale-in" style={{ animationDelay: '500ms' }}>
-              <PillarCard {...pillars[5]} onUpdate={handleUpdateRatings} />
+              <PillarCard 
+                {...pillars[5]} 
+                onUpdate={handleUpdateRatings}
+                projectName={projectName}
+                assessmentDate={assessmentDate}
+              />
             </div>
           </div>
         </div>
 
-        {/* Save All Button */}
         <div className="flex justify-center pt-8">
           <Button 
             onClick={handleSaveAllRatings}

@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { KeyPractice, RatingLevel, Pillar } from "@/types/ratings";
 
 interface PillarCardProps extends Pillar {
   className?: string;
   onUpdate?: (pillarTitle: string, practices: KeyPractice[]) => void;
+  projectName?: string;
+  assessmentDate?: string;
 }
 
 export const PillarCard = ({
@@ -14,8 +17,27 @@ export const PillarCard = ({
   keyPractices,
   className,
   onUpdate,
+  projectName,
+  assessmentDate,
 }: PillarCardProps) => {
+  const navigate = useNavigate();
   const [practices, setPractices] = useState<KeyPractice[]>(keyPractices);
+
+  const handlePracticeClick = (practice: KeyPractice, index: number) => {
+    if (title === "People" && practice.name === "Training and Upskilling") {
+      navigate(`/training-aspects?project=${projectName}&date=${assessmentDate}`);
+      return;
+    }
+
+    const ratings: RatingLevel[] = [
+      "Largely in Place",
+      "Somewhat in Place",
+      "Not in Place",
+    ];
+    const currentIndex = ratings.indexOf(practice.rating || "Not in Place");
+    const nextIndex = (currentIndex + 1) % ratings.length;
+    handleRatingChange(index, ratings[nextIndex]);
+  };
 
   const handleRatingChange = (practiceIndex: number, value: RatingLevel) => {
     const updatedPractices = [...practices];
@@ -71,16 +93,7 @@ export const PillarCard = ({
                   "p-3 rounded-lg cursor-pointer transition-colors duration-200",
                   getRatingColor(practice.rating)
                 )}
-                onClick={() => {
-                  const ratings: RatingLevel[] = [
-                    "Largely in Place",
-                    "Somewhat in Place",
-                    "Not in Place",
-                  ];
-                  const currentIndex = ratings.indexOf(practice.rating || "Not in Place");
-                  const nextIndex = (currentIndex + 1) % ratings.length;
-                  handleRatingChange(index, ratings[nextIndex]);
-                }}
+                onClick={() => handlePracticeClick(practice, index)}
               >
                 <h4 className="font-medium text-sm">{practice.name}</h4>
               </div>
