@@ -102,11 +102,10 @@ const CollaborationAspects = () => {
       return sum + (aspect.rating ? ratingScores[aspect.rating] : 0);
     }, 0);
 
-    const maxScore = aspects.length * 2;
-    const percentage = (totalScore / maxScore) * 100;
+    console.log("Total collaboration score:", totalScore);
 
-    if (percentage >= 70) return "Largely in Place";
-    if (percentage >= 30) return "Somewhat in Place";
+    if (totalScore >= 8) return "Largely in Place";
+    if (totalScore >= 5) return "Somewhat in Place";
     return "Not in Place";
   };
 
