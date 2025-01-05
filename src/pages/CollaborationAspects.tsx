@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -58,6 +58,40 @@ const CollaborationAspects = () => {
   
   const [aspects, setAspects] = useState<CollaborationAspect[]>(collaborationAspects);
 
+  useEffect(() => {
+    const loadAspectRatings = async () => {
+      if (!projectName || !assessmentDate) return;
+
+      try {
+        const { data: ratings, error } = await supabase
+          .from('ratings')
+          .select('practice_name, rating')
+          .eq('project_name', projectName)
+          .eq('assessment_date', assessmentDate)
+          .eq('pillar_title', 'People')
+          .like('practice_name', 'Collaboration:%');
+
+        if (error) throw error;
+
+        if (ratings && ratings.length > 0) {
+          const updatedAspects = aspects.map(aspect => {
+            const matchingRating = ratings.find(r => r.practice_name === `Collaboration:${aspect.name}`);
+            return {
+              ...aspect,
+              rating: matchingRating?.rating as CollaborationAspect["rating"] || null
+            };
+          });
+          setAspects(updatedAspects);
+        }
+      } catch (error) {
+        console.error("Error loading ratings:", error);
+        toast.error("Failed to load aspect ratings");
+      }
+    };
+
+    loadAspectRatings();
+  }, [projectName, assessmentDate]);
+
   const getRatingColor = (rating: CollaborationAspect["rating"]) => {
     switch (rating) {
       case "Largely in Place":
@@ -116,16 +150,37 @@ const CollaborationAspects = () => {
     }
 
     try {
+      // First, save individual aspect ratings
+      const aspectPromises = aspects.map(aspect => 
+        supabase
+          .from('ratings')
+          .upsert({
+            project_name: projectName,
+            assessment_date: assessmentDate,
+            pillar_title: 'People',
+            practice_name: `Collaboration:${aspect.name}`,
+            rating: aspect.rating
+          }, {
+            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+          })
+          .select()
+      );
+
+      await Promise.all(aspectPromises);
+
+      // Then save the overall collaboration rating
       const overallRating = calculateOverallRating();
       
       const { error } = await supabase
-        .from("ratings")
-        .insert({
+        .from('ratings')
+        .upsert({
           project_name: projectName,
           assessment_date: assessmentDate,
-          pillar_title: "People",
-          practice_name: "Collaboration",
+          pillar_title: 'People',
+          practice_name: 'Collaboration',
           rating: overallRating
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         })
         .select();
 
@@ -134,8 +189,8 @@ const CollaborationAspects = () => {
       toast.success("Collaboration aspects saved successfully");
       navigate('/');
     } catch (error) {
-      console.error("Error saving rating:", error);
-      toast.error("Failed to save rating");
+      console.error("Error saving ratings:", error);
+      toast.error("Failed to save ratings");
     }
   };
 
