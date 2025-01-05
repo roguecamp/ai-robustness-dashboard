@@ -39,7 +39,7 @@ export const PillarCard = ({
       case "Not in Place":
         return "bg-white border border-gray-200";
       default:
-        return "bg-gray border border-gray-200";
+        return "bg-gray-100 border border-gray-200";
     }
   };
 
