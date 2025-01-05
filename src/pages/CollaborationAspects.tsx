@@ -1,15 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-
-interface CollaborationAspect {
-  name: string;
-  description: string;
-  rating: "Largely in Place" | "Somewhat in Place" | "Not in Place" | null;
-}
+import { AspectCard } from "@/components/collaboration/AspectCard";
+import { calculateOverallRating } from "@/utils/collaborationScoring";
+import type { CollaborationAspect } from "@/types/collaboration";
 
 const collaborationAspects: CollaborationAspect[] = [
   {
@@ -92,20 +88,7 @@ const CollaborationAspects = () => {
     loadAspectRatings();
   }, [projectName, assessmentDate]);
 
-  const getRatingColor = (rating: CollaborationAspect["rating"]) => {
-    switch (rating) {
-      case "Largely in Place":
-        return "bg-green-700 text-white";
-      case "Somewhat in Place":
-        return "bg-green-300";
-      case "Not in Place":
-        return "bg-white border border-gray-200";
-      default:
-        return "bg-gray-100 border border-gray-200";
-    }
-  };
-
-  const handleRatingChange = (index: number) => {
+  const handleAspectClick = (index: number) => {
     const ratings: CollaborationAspect["rating"][] = [
       "Largely in Place",
       "Somewhat in Place",
@@ -125,24 +108,6 @@ const CollaborationAspects = () => {
     setAspects(updatedAspects);
   };
 
-  const calculateOverallRating = () => {
-    const ratingScores = {
-      "Largely in Place": 2,
-      "Somewhat in Place": 1,
-      "Not in Place": 0
-    };
-
-    const totalScore = aspects.reduce((sum, aspect) => {
-      return sum + (aspect.rating ? ratingScores[aspect.rating] : 0);
-    }, 0);
-
-    console.log("Total collaboration score:", totalScore);
-
-    if (totalScore >= 8) return "Largely in Place";
-    if (totalScore >= 5) return "Somewhat in Place";
-    return "Not in Place";
-  };
-
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
       toast.error("Missing project information");
@@ -151,8 +116,8 @@ const CollaborationAspects = () => {
 
     try {
       // First, save individual aspect ratings
-      const aspectPromises = aspects.map(aspect => 
-        supabase
+      for (const aspect of aspects) {
+        const { error: aspectError } = await supabase
           .from('ratings')
           .upsert({
             project_name: projectName,
@@ -162,14 +127,13 @@ const CollaborationAspects = () => {
             rating: aspect.rating
           }, {
             onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-          })
-          .select()
-      );
+          });
 
-      await Promise.all(aspectPromises);
+        if (aspectError) throw aspectError;
+      }
 
       // Then save the overall collaboration rating
-      const overallRating = calculateOverallRating();
+      const overallRating = calculateOverallRating(aspects);
       
       const { error } = await supabase
         .from('ratings')
@@ -181,8 +145,7 @@ const CollaborationAspects = () => {
           rating: overallRating
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-        })
-        .select();
+        });
 
       if (error) throw error;
       
@@ -207,14 +170,11 @@ const CollaborationAspects = () => {
 
         <div className="grid gap-4">
           {aspects.map((aspect, index) => (
-            <Card
+            <AspectCard
               key={aspect.name}
-              className={`p-4 cursor-pointer transition-colors duration-200 ${getRatingColor(aspect.rating)}`}
-              onClick={() => handleRatingChange(index)}
-            >
-              <h3 className="font-semibold">{aspect.name}</h3>
-              <p className="text-sm mt-1">{aspect.description}</p>
-            </Card>
+              aspect={aspect}
+              onClick={() => handleAspectClick(index)}
+            />
           ))}
         </div>
 
