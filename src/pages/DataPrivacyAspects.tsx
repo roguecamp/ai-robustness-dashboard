@@ -45,12 +45,6 @@ const initialAspects: DataPrivacyAspect[] = [
   },
 ];
 
-const isValidRating = (rating: string | null): rating is "Largely in Place" | "Somewhat in Place" | "Not in Place" => {
-  return rating === "Largely in Place" || 
-         rating === "Somewhat in Place" || 
-         rating === "Not in Place";
-};
-
 export default function DataPrivacyAspects() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -78,7 +72,7 @@ export default function DataPrivacyAspects() {
             const rating = ratings.find(r => r.practice_name === aspect.name);
             return {
               ...aspect,
-              rating: isValidRating(rating?.rating) ? rating.rating : null,
+              rating: rating?.rating as DataPrivacyAspect["rating"] || null,
             };
           });
           setAspects(updatedAspects);
@@ -187,7 +181,7 @@ export default function DataPrivacyAspects() {
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={handleSave}>Save Ratings</Button>
+          <Button onClick={handleSave}>Save Overall Rating</Button>
         </div>
       </div>
     </div>

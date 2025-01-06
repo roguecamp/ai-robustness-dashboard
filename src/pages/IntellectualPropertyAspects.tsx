@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { IntellectualPropertyAspect } from "@/types/intellectual-property";
@@ -99,32 +98,57 @@ const IntellectualPropertyAspects = () => {
     const nextIndex = (currentIndex + 1) % ratings.length;
     newAspects[index] = { ...aspects[index], rating: ratings[nextIndex] };
     setAspects(newAspects);
+  };
 
-    if (!projectName || !assessmentDate) return;
+  const handleSave = async () => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
 
     try {
-      const { error } = await supabase.from("ratings").upsert({
+      // Delete existing ratings
+      await supabase
+        .from("ratings")
+        .delete()
+        .eq("project_name", projectName)
+        .eq("assessment_date", assessmentDate)
+        .eq("pillar_title", "Legal")
+        .eq("practice_name", "Intellectual Property");
+
+      // Insert new ratings
+      const ratingsToInsert = aspects.map(aspect => ({
         project_name: projectName,
         assessment_date: assessmentDate,
         pillar_title: "Legal",
-        practice_name: aspects[index].name,
-        rating: ratings[nextIndex],
-      });
+        practice_name: aspect.name,
+        rating: aspect.rating,
+      }));
+
+      const { error } = await supabase.from("ratings").insert(ratingsToInsert);
 
       if (error) throw error;
 
-      const overallRating = calculateOverallRating(newAspects);
-      await supabase.from("ratings").upsert({
-        project_name: projectName,
-        assessment_date: assessmentDate,
-        pillar_title: "Legal",
-        practice_name: "Intellectual Property",
-        rating: overallRating,
-      });
+      const overallRating = calculateOverallRating(aspects);
+      
+      // Update the overall rating
+      const { error: updateError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Legal",
+          practice_name: "Intellectual Property",
+          rating: overallRating,
+        });
 
+      if (updateError) throw updateError;
+
+      toast.success("Ratings saved successfully");
+      navigate('/');
     } catch (error) {
-      console.error("Error saving rating:", error);
-      toast.error("Failed to save rating");
+      console.error("Error saving ratings:", error);
+      toast.error("Failed to save ratings");
     }
   };
 
@@ -132,16 +156,14 @@ const IntellectualPropertyAspects = () => {
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">Intellectual Property Aspects</h1>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/")}
-          >
-            Back to Dashboard
-          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Intellectual Property Aspects</h1>
+            <p className="text-gray-500">Evaluate each aspect to determine overall rating</p>
+          </div>
+          <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
         </div>
 
-        <div className="grid gap-6">
+        <div className="grid gap-4">
           {aspects.map((aspect, index) => (
             <AspectCard
               key={aspect.name}
@@ -149,6 +171,10 @@ const IntellectualPropertyAspects = () => {
               onClick={() => handleAspectClick(index)}
             />
           ))}
+        </div>
+
+        <div className="flex justify-end">
+          <Button onClick={handleSave}>Save Overall Rating</Button>
         </div>
       </div>
     </div>
