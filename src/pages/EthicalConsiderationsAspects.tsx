@@ -57,19 +57,24 @@ export default function EthicalConsiderationsAspects() {
       if (!projectName || !assessmentDate) return;
 
       try {
+        console.log('Loading ethical considerations ratings for:', projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from("ratings")
           .select("*")
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Legal")
-          .eq("practice_name", "Ethical Considerations");
+          .like("practice_name", 'EthicalConsiderations:%');
 
         if (error) throw error;
 
+        console.log('Loaded ethical considerations ratings:', ratings);
+
         if (ratings && ratings.length > 0) {
           const updatedAspects = aspects.map(aspect => {
-            const rating = ratings.find(r => r.practice_name === aspect.name);
+            const rating = ratings.find(r => 
+              r.practice_name === `EthicalConsiderations:${aspect.name}`
+            );
             return {
               ...aspect,
               rating: rating?.rating as EthicalConsiderationsAspect["rating"] || null,
@@ -86,7 +91,12 @@ export default function EthicalConsiderationsAspects() {
     loadRatings();
   }, [projectName, assessmentDate]);
 
-  const handleAspectClick = (index: number) => {
+  const handleAspectClick = async (index: number) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     const ratings: ("Largely in Place" | "Somewhat in Place" | "Not in Place")[] = [
       "Largely in Place",
       "Somewhat in Place",
@@ -95,14 +105,37 @@ export default function EthicalConsiderationsAspects() {
     
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
-    const nextIndex = (currentIndex + 1) % ratings.length;
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
 
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      rating: ratings[nextIndex],
-    };
-    setAspects(updatedAspects);
+    try {
+      // Save the individual aspect rating
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Legal",
+          practice_name: `EthicalConsiderations:${aspects[index].name}`,
+          rating: nextRating
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      // Update local state
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = {
+        ...aspects[index],
+        rating: nextRating,
+      };
+      setAspects(updatedAspects);
+
+      console.log(`Updated aspect ${aspects[index].name} to ${nextRating}`);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
   };
 
   const handleSave = async () => {
@@ -112,28 +145,6 @@ export default function EthicalConsiderationsAspects() {
     }
 
     try {
-      // Delete existing ratings for this practice
-      await supabase
-        .from("ratings")
-        .delete()
-        .eq("project_name", projectName)
-        .eq("assessment_date", assessmentDate)
-        .eq("pillar_title", "Legal")
-        .eq("practice_name", "Ethical Considerations");
-
-      // Insert new ratings
-      const ratingsToInsert = aspects.map(aspect => ({
-        project_name: projectName,
-        assessment_date: assessmentDate,
-        pillar_title: "Legal",
-        practice_name: aspect.name,
-        rating: aspect.rating,
-      }));
-
-      const { error } = await supabase.from("ratings").insert(ratingsToInsert);
-
-      if (error) throw error;
-
       const overallRating = calculateOverallRating(aspects);
       
       // Update the overall rating for Ethical Considerations
@@ -145,15 +156,17 @@ export default function EthicalConsiderationsAspects() {
           pillar_title: "Legal",
           practice_name: "Ethical Considerations",
           rating: overallRating,
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (updateError) throw updateError;
 
-      toast.success("Ratings saved successfully");
+      toast.success("Overall rating saved successfully");
       navigate('/');
     } catch (error) {
-      console.error("Error saving ratings:", error);
-      toast.error("Failed to save ratings");
+      console.error("Error saving overall rating:", error);
+      toast.error("Failed to save overall rating");
     }
   };
 
