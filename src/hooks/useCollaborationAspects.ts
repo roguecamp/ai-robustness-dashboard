@@ -6,28 +6,38 @@ import type { RatingLevel } from "@/types/ratings";
 
 const initialAspects: CollaborationAspect[] = [
   {
-    name: "Team Communication",
-    description: "Effective communication channels and practices within AI teams.",
-    rating: null
-  },
-  {
-    name: "Cross-functional Collaboration",
-    description: "Collaboration between AI teams and other departments.",
-    rating: null
-  },
-  {
-    name: "Knowledge Sharing",
-    description: "Systems for sharing AI knowledge and best practices.",
-    rating: null
-  },
-  {
-    name: "Stakeholder Engagement",
-    description: "Regular engagement with key stakeholders.",
+    name: "Interdisciplinary Teams",
+    description: "Existance and effectiveness of cross-functional teams.",
     rating: null
   },
   {
     name: "External Partnerships",
-    description: "Collaboration with external AI partners and vendors.",
+    description: "Relationships with external AI consultants, vendors, and academic institutions.",
+    rating: null
+  },
+  {
+    name: "Collaboration Tools",
+    description: "Availability and utilization of collaboration tools",
+    rating: null
+  },
+  {
+    name: "Knowledge Sharing",
+    description: "Platforms and practices for sharing AI knowledge across the organization",
+    rating: null
+  },
+  {
+    name: "Project Management",
+    description: "Effectiuveness in managing AI projects across different teams.",
+    rating: null
+  },
+  {
+    name: "Innovation Culture",
+    description: "Encouragement and support for innovative ideas and experimentation.",
+    rating: null
+  },
+  {
+    name: "Feedback Loops",
+    description: "Mechanisms for collecting and acting on feedback from various stakeholders.",
     rating: null
   }
 ];
