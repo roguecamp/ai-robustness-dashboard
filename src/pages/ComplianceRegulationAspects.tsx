@@ -59,21 +59,25 @@ const ComplianceRegulationAspects = () => {
       if (!projectName || !assessmentDate) return;
 
       try {
+        console.log('Loading compliance regulation ratings for:', projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from("ratings")
           .select("*")
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Legal")
-          .eq("practice_name", "Compliance and Regulation");
+          .like("practice_name", 'ComplianceRegulation:%');
 
         if (error) throw error;
+
+        console.log('Loaded compliance regulation ratings:', ratings);
 
         if (ratings && ratings.length > 0) {
           const savedAspects = [...aspects];
           ratings.forEach(rating => {
+            const aspectName = rating.practice_name.replace("ComplianceRegulation:", "");
             const aspectIndex = savedAspects.findIndex(
-              aspect => aspect.name === rating.practice_name
+              aspect => aspect.name === aspectName
             );
             if (aspectIndex !== -1 && rating.rating) {
               const typedRating = rating.rating as RatingLevel;
@@ -91,18 +95,47 @@ const ComplianceRegulationAspects = () => {
     loadRatings();
   }, [projectName, assessmentDate]);
 
-  const handleAspectClick = (index: number) => {
-    const newAspects = [...aspects];
-    const currentRating = aspects[index].rating;
+  const handleAspectClick = async (index: number) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     const ratings: RatingLevel[] = [
       "Largely in Place",
       "Somewhat in Place",
       "Not in Place"
     ];
+    const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
-    newAspects[index] = { ...aspects[index], rating: nextRating };
-    setAspects(newAspects);
+
+    try {
+      // Save the individual aspect rating
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Legal",
+          practice_name: `ComplianceRegulation:${aspects[index].name}`,
+          rating: nextRating
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      // Update local state
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], rating: nextRating };
+      setAspects(newAspects);
+
+      console.log(`Updated aspect ${aspects[index].name} to ${nextRating}`);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
   };
 
   const handleSaveOverallRating = async () => {
@@ -126,32 +159,17 @@ const ComplianceRegulationAspects = () => {
           pillar_title: "Legal",
           practice_name: "Compliance and Regulation",
           rating: overallRating
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (error) throw error;
 
-      // Also save individual aspect ratings
-      for (const aspect of aspects) {
-        if (aspect.rating) {
-          const { error: aspectError } = await supabase
-            .from("ratings")
-            .upsert({
-              project_name: projectName,
-              assessment_date: assessmentDate,
-              pillar_title: "Legal",
-              practice_name: aspect.name,
-              rating: aspect.rating
-            });
-
-          if (aspectError) throw aspectError;
-        }
-      }
-
-      toast.success("Ratings saved successfully");
+      toast.success("Overall rating saved successfully");
       navigate(`/?project=${projectName}&date=${assessmentDate}`);
     } catch (error) {
-      console.error("Error saving ratings:", error);
-      toast.error("Failed to save ratings");
+      console.error("Error saving overall rating:", error);
+      toast.error("Failed to save overall rating");
     }
   };
 
