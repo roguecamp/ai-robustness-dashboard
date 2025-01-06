@@ -58,6 +58,7 @@ export const PillarCard = ({
   };
 
   const getRatingColor = (rating: RatingLevel | null) => {
+    console.log(`Getting color for rating: ${rating}`);
     switch (rating) {
       case "Largely in Place":
         return "bg-green-700 text-white";
