@@ -178,10 +178,7 @@ const ComplianceRegulationAspects = () => {
         </div>
 
         <div className="pt-6">
-          <Button 
-            className="w-full"
-            onClick={handleSaveOverallRating}
-          >
+          <Button onClick={handleSaveOverallRating}>
             Save Overall Rating
           </Button>
         </div>
