@@ -80,6 +80,11 @@ export const PillarCard = ({
         navigate(`/compliance-regulation-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       }
+    } else if (title === "Solution") {
+      if (practice.name === "Infrastructure") {
+        navigate(`/infrastructure-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      }
     }
 
     const ratings: RatingLevel[] = [
