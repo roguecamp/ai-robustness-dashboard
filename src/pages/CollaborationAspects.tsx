@@ -119,15 +119,13 @@ const CollaborationAspects = () => {
       for (const aspect of aspects) {
         const { error: aspectError } = await supabase
           .from('ratings')
-          .insert({
+          .upsert({
             project_name: projectName,
             assessment_date: assessmentDate,
             pillar_title: 'People',
             practice_name: `Collaboration:${aspect.name}`,
             rating: aspect.rating
-          })
-          .onConflict(['project_name', 'assessment_date', 'pillar_title', 'practice_name'])
-          .merge();
+          });
 
         if (aspectError) throw aspectError;
       }
@@ -137,15 +135,13 @@ const CollaborationAspects = () => {
       
       const { error } = await supabase
         .from('ratings')
-        .insert({
+        .upsert({
           project_name: projectName,
           assessment_date: assessmentDate,
           pillar_title: 'People',
           practice_name: 'Collaboration',
           rating: overallRating
-        })
-        .onConflict(['project_name', 'assessment_date', 'pillar_title', 'practice_name'])
-        .merge();
+        });
 
       if (error) throw error;
       
