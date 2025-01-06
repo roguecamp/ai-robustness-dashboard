@@ -25,7 +25,6 @@ export const PillarCard = ({
   const navigate = useNavigate();
   const [practices, setPractices] = useState<KeyPractice[]>(keyPractices);
 
-  // Update local state when props change
   useEffect(() => {
     console.log(`Updating practices for ${title} with:`, keyPractices);
     if (currentRatings[title]) {
@@ -43,6 +42,9 @@ export const PillarCard = ({
         return;
       } else if (practice.name === "Collaboration") {
         navigate(`/collaboration-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      } else if (practice.name === "Change Management") {
+        navigate(`/change-management-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       }
     }

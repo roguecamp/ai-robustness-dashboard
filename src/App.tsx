@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import TrainingAspects from "./pages/TrainingAspects";
 import CollaborationAspects from "./pages/CollaborationAspects";
+import ChangeManagementAspects from "./pages/ChangeManagementAspects";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/training-aspects" element={<TrainingAspects />} />
           <Route path="/collaboration-aspects" element={<CollaborationAspects />} />
+          <Route path="/change-management-aspects" element={<ChangeManagementAspects />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
