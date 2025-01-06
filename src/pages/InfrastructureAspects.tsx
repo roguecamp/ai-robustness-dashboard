@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { InfrastructureAspect } from "@/types/infrastructure";
 import { calculateOverallRating } from "@/utils/infrastructureScoring";
 import { AspectCard } from "@/components/business-alignment/AspectCard";
+import type { RatingLevel } from "@/types/ratings";
 
 const InfrastructureAspects = () => {
   const navigate = useNavigate();
@@ -62,20 +63,24 @@ const InfrastructureAspects = () => {
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Solution")
-          .eq("practice_name", "Infrastructure");
+          .like("practice_name", 'Infrastructure:%');
 
         if (error) throw error;
 
+        console.log("Loaded infrastructure aspect ratings:", ratings);
+
         if (ratings && ratings.length > 0) {
-          console.log("Loaded infrastructure aspect ratings:", ratings);
-          const updatedAspects = aspects.map((aspect) => {
-            const rating = ratings.find((r) => r.practice_name === aspect.name);
-            return {
-              ...aspect,
-              rating: (rating?.rating as InfrastructureAspect["rating"]) || aspect.rating,
-            };
+          const savedAspects = [...aspects];
+          ratings.forEach(rating => {
+            const aspectName = rating.practice_name.replace("Infrastructure:", "");
+            const aspectIndex = savedAspects.findIndex(
+              aspect => aspect.name === aspectName
+            );
+            if (aspectIndex !== -1) {
+              savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
+            }
           });
-          setAspects(updatedAspects);
+          setAspects(savedAspects);
         }
       } catch (error) {
         console.error("Error loading infrastructure aspect ratings:", error);
@@ -87,17 +92,46 @@ const InfrastructureAspects = () => {
   }, [projectName, assessmentDate]);
 
   const handleAspectClick = async (index: number) => {
-    const newAspects = [...aspects];
-    const currentRating = aspects[index].rating;
-    const ratings: InfrastructureAspect["rating"][] = [
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    const ratings: RatingLevel[] = [
       "Largely in Place",
       "Somewhat in Place",
       "Not in Place",
     ];
+    const currentRating = aspects[index].rating;
     const currentIndex = ratings.indexOf(currentRating);
-    const nextIndex = (currentIndex + 1) % ratings.length;
-    newAspects[index] = { ...aspects[index], rating: ratings[nextIndex] };
-    setAspects(newAspects);
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
+
+    try {
+      // Save the individual aspect rating
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Solution",
+          practice_name: `Infrastructure:${aspects[index].name}`,
+          rating: nextRating
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      // Update local state
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], rating: nextRating };
+      setAspects(newAspects);
+
+      console.log(`Updated aspect ${aspects[index].name} to ${nextRating}`);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
   };
 
   const handleSave = async () => {
@@ -107,32 +141,10 @@ const InfrastructureAspects = () => {
     }
 
     try {
-      // Delete existing ratings
-      await supabase
-        .from("ratings")
-        .delete()
-        .eq("project_name", projectName)
-        .eq("assessment_date", assessmentDate)
-        .eq("pillar_title", "Solution")
-        .eq("practice_name", "Infrastructure");
-
-      // Insert new ratings
-      const ratingsToInsert = aspects.map(aspect => ({
-        project_name: projectName,
-        assessment_date: assessmentDate,
-        pillar_title: "Solution",
-        practice_name: aspect.name,
-        rating: aspect.rating,
-      }));
-
-      const { error } = await supabase.from("ratings").insert(ratingsToInsert);
-
-      if (error) throw error;
-
       const overallRating = calculateOverallRating(aspects);
       
       // Update the overall rating
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from("ratings")
         .upsert({
           project_name: projectName,
@@ -140,15 +152,17 @@ const InfrastructureAspects = () => {
           pillar_title: "Solution",
           practice_name: "Infrastructure",
           rating: overallRating,
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
-      toast.success("Ratings saved successfully");
-      navigate('/');
+      toast.success("Overall rating saved successfully");
+      navigate(`/?project=${projectName}&date=${assessmentDate}`);
     } catch (error) {
-      console.error("Error saving ratings:", error);
-      toast.error("Failed to save ratings");
+      console.error("Error saving overall rating:", error);
+      toast.error("Failed to save overall rating");
     }
   };
 
