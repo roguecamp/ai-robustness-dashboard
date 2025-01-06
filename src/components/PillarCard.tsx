@@ -71,14 +71,25 @@ export const PillarCard = ({
   };
 
   const getCardBackgroundColor = () => {
-    if (title === "People" && practices.find(p => p.name === "Collaboration")?.rating) {
+    if (title === "People") {
       const collaborationRating = practices.find(p => p.name === "Collaboration")?.rating;
-      return getRatingColor(collaborationRating);
+      switch (collaborationRating) {
+        case "Largely in Place":
+          return "bg-green-700";
+        case "Somewhat in Place":
+          return "bg-green-300";
+        case "Not in Place":
+          return "bg-white border border-gray-200";
+        default:
+          return "glass-card";
+      }
     }
     return "glass-card";
   };
 
   const isSecurityPillar = title === "Security";
+  const collaborationRating = practices.find(p => p.name === "Collaboration")?.rating;
+  const isLargelyInPlace = collaborationRating === "Largely in Place";
 
   return (
     <div
@@ -92,13 +103,13 @@ export const PillarCard = ({
         <div>
           <h3 className={cn(
             "text-xl font-semibold",
-            practices.find(p => p.name === "Collaboration")?.rating === "Largely in Place" ? "text-white" : ""
-          )} style={{ color: title === "People" && practices.find(p => p.name === "Collaboration")?.rating ? undefined : color }}>
+            isLargelyInPlace ? "text-white" : ""
+          )} style={{ color: title === "People" && !isLargelyInPlace ? color : undefined }}>
             {title}
           </h3>
           <p className={cn(
             "text-sm",
-            practices.find(p => p.name === "Collaboration")?.rating === "Largely in Place" ? "text-white/80" : "text-gray-500"
+            isLargelyInPlace ? "text-white/80" : "text-gray-500"
           )}>{description}</p>
         </div>
         
