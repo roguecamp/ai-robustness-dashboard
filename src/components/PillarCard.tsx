@@ -80,6 +80,11 @@ export const PillarCard = ({
         navigate(`/compliance-regulation-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       }
+    } else if (title === "Solution") {
+      if (practice.name === "Infrastructure") {
+        navigate(`/infrastructure-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      }
     }
 
     const ratings: RatingLevel[] = [
@@ -121,8 +126,6 @@ export const PillarCard = ({
         return "bg-gray-100 border border-gray-200 text-gray-900";
     }
   };
-
-  const isSecurityPillar = title === "Security";
 
   return (
     <div className={cn("rounded-2xl p-6 glass-card transition-all duration-300 hover:shadow-xl", className)}>
