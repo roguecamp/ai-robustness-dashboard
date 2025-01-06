@@ -6,8 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AspectCard } from "@/components/business-alignment/AspectCard";
 import { calculateOverallRating } from "@/utils/businessAlignmentScoring";
 import type { BusinessAlignmentAspect } from "@/types/business-alignment";
-import { RatingKey } from "@/components/shared/RatingKey";
 import { RatingLevel } from "@/types/ratings";
+import { BusinessAlignmentHeader } from "@/components/business-alignment/BusinessAlignmentHeader";
 
 const initialAspects: BusinessAlignmentAspect[] = [
   {
@@ -164,18 +164,7 @@ export default function BusinessAlignmentAspects() {
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">Business Alignment Aspects</h1>
-            <p className="text-gray-600">
-              Rate each aspect of Business Alignment by clicking on the cards. Click multiple times to cycle through ratings.
-            </p>
-          </div>
-          <div className="flex gap-4 items-start">
-            <RatingKey />
-            <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
-          </div>
-        </div>
+        <BusinessAlignmentHeader onBackClick={() => navigate('/')} />
 
         <div className="grid gap-4">
           {aspects.map((aspect, index) => (
