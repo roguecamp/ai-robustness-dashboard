@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AspectCard } from "@/components/business-alignment/AspectCard";
 import { calculateOverallRating } from "@/utils/businessAlignmentScoring";
+import { RatingKey } from "@/components/shared/RatingKey";
 import type { BusinessAlignmentAspect } from "@/types/business-alignment";
 
 const businessAlignmentAspects: BusinessAlignmentAspect[] = [
@@ -170,12 +171,15 @@ const BusinessAlignmentAspects = () => {
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold">Business Alignment Aspects</h1>
             <p className="text-gray-500">Evaluate each aspect to determine overall rating</p>
           </div>
-          <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
+          <div className="flex gap-4 items-start">
+            <RatingKey />
+            <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
+          </div>
         </div>
 
         <div className="grid gap-4">
