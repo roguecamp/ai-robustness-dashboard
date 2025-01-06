@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { deploymentMonitoringAspects, type DeploymentMonitoringAspect } from "@/types/deployment-monitoring";
-import { calculateDeploymentMonitoringRating } from "@/utils/deploymentMonitoringScoring";
+import { calculateOverallRating } from "@/utils/deploymentMonitoringScoring";
 
 const DeploymentMonitoringAspects = () => {
   const navigate = useNavigate();
@@ -108,7 +108,7 @@ const DeploymentMonitoringAspects = () => {
       }
 
       // Calculate and save the overall rating
-      const overallRating = calculateDeploymentMonitoringRating(aspects);
+      const overallRating = calculateOverallRating(aspects);
       
       const { error } = await supabase
         .from('ratings')
