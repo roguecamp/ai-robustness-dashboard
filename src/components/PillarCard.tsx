@@ -73,6 +73,9 @@ export const PillarCard = ({
       if (practice.name === "Intellectual Property") {
         navigate(`/intellectual-property-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
+      } else if (practice.name === "Ethical Considerations") {
+        navigate(`/ethical-considerations-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
       }
     }
 

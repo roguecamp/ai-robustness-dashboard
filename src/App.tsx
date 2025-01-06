@@ -14,6 +14,7 @@ import DataAcquisitionAspects from "./pages/DataAcquisitionAspects";
 import DataGovernanceAspects from "./pages/DataGovernanceAspects";
 import DataPrivacyAspects from "./pages/DataPrivacyAspects";
 import IntellectualPropertyAspects from "./pages/IntellectualPropertyAspects";
+import EthicalConsiderationsAspects from "./pages/EthicalConsiderationsAspects";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/data-governance-aspects" element={<DataGovernanceAspects />} />
           <Route path="/data-privacy-aspects" element={<DataPrivacyAspects />} />
           <Route path="/intellectual-property-aspects" element={<IntellectualPropertyAspects />} />
+          <Route path="/ethical-considerations-aspects" element={<EthicalConsiderationsAspects />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
