@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { KeyPractice, RatingLevel, Pillar } from "@/types/ratings";
@@ -22,6 +22,12 @@ export const PillarCard = ({
 }: PillarCardProps) => {
   const navigate = useNavigate();
   const [practices, setPractices] = useState<KeyPractice[]>(keyPractices);
+
+  // Add useEffect to sync practices state with keyPractices prop
+  useEffect(() => {
+    console.log(`Updating practices for ${title}:`, keyPractices);
+    setPractices(keyPractices);
+  }, [keyPractices, title]);
 
   const handlePracticeClick = (practice: KeyPractice, index: number) => {
     if (title === "People") {
