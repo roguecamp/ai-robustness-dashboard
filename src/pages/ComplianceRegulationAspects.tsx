@@ -177,7 +177,7 @@ const ComplianceRegulationAspects = () => {
           ))}
         </div>
 
-        <div className="pt-6">
+        <div className="flex justify-end pt-6">
           <Button onClick={handleSaveOverallRating}>
             Save Overall Rating
           </Button>
