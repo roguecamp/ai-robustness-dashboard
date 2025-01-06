@@ -9,6 +9,15 @@ interface PillarGridProps {
 export const PillarGrid = ({ pillars }: PillarGridProps) => {
   const { projectName, assessmentDate, pillarRatings, setPillarRatings } = useDashboardStore();
 
+  // Convert pillarRatings to the format expected by PillarCard
+  const convertRatings = (ratings: Record<string, { name: string; rating: string | null }[]>): Record<string, string | null> => {
+    const result: Record<string, string | null> = {};
+    Object.values(ratings).flat().forEach(practice => {
+      result[practice.name] = practice.rating;
+    });
+    return result;
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -22,10 +31,19 @@ export const PillarGrid = ({ pillars }: PillarGridProps) => {
           >
             <PillarCard 
               {...pillar} 
-              onUpdate={setPillarRatings}
+              onUpdate={(ratings) => {
+                const newRatings = Object.entries(ratings).reduce((acc, [name, rating]) => {
+                  acc[pillar.title] = pillar.keyPractices.map(practice => ({
+                    name: practice.name,
+                    rating: practice.name === name ? rating : practice.rating
+                  }));
+                  return acc;
+                }, {} as Record<string, { name: string; rating: string | null }[]>);
+                setPillarRatings(newRatings);
+              }}
               projectName={projectName}
               assessmentDate={assessmentDate}
-              currentRatings={pillarRatings}
+              currentRatings={convertRatings(pillarRatings)}
             />
           </div>
         ))}
@@ -34,10 +52,19 @@ export const PillarGrid = ({ pillars }: PillarGridProps) => {
         <div className="animate-scale-in" style={{ animationDelay: '500ms' }}>
           <PillarCard 
             {...pillars[5]} 
-            onUpdate={setPillarRatings}
+            onUpdate={(ratings) => {
+              const newRatings = Object.entries(ratings).reduce((acc, [name, rating]) => {
+                acc[pillars[5].title] = pillars[5].keyPractices.map(practice => ({
+                  name: practice.name,
+                  rating: practice.name === name ? rating : practice.rating
+                }));
+                return acc;
+              }, {} as Record<string, { name: string; rating: string | null }[]>);
+              setPillarRatings(newRatings);
+            }}
             projectName={projectName}
             assessmentDate={assessmentDate}
-            currentRatings={pillarRatings}
+            currentRatings={convertRatings(pillarRatings)}
           />
         </div>
       </div>

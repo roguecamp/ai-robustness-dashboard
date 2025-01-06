@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RatingCircle } from "./RatingCircle";
 import type { Pillar } from "@/types/ratings";
 
-interface PillarCardProps extends Pillar {
+interface PillarCardProps {
+  title: string;
+  description: string;
+  color: string;
+  keyPractices: { name: string; rating: string | null }[];
   onUpdate: (ratings: Record<string, string | null>) => void;
   projectName: string | null;
   assessmentDate: string | null;
@@ -12,7 +16,7 @@ interface PillarCardProps extends Pillar {
 
 export const PillarCard = ({
   title,
-  practices,
+  keyPractices,
   onUpdate,
   projectName,
   assessmentDate,
@@ -44,14 +48,14 @@ export const PillarCard = ({
         <CardTitle className="text-xl">{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {practices.map((practice) => (
+        {keyPractices.map((practice) => (
           <div
-            key={practice}
-            onClick={() => handlePracticeClick(practice)}
+            key={practice.name}
+            onClick={() => handlePracticeClick(practice.name)}
             className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
           >
-            <span className="text-sm font-medium">{practice}</span>
-            <RatingCircle rating={currentRatings[practice]} />
+            <span className="text-sm font-medium">{practice.name}</span>
+            <RatingCircle rating={currentRatings[practice.name]} />
           </div>
         ))}
       </CardContent>
