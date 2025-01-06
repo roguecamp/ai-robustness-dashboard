@@ -1,14 +1,12 @@
 import { useEffect } from "react";
 import { Toaster } from "sonner";
-import { Button } from "./ui/button";
-import { ProjectInfo } from "./dashboard/ProjectInfo";
-import { RatingKey } from "./dashboard/RatingKey";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { PillarGrid } from "./dashboard/PillarGrid";
+import { SaveRatingsButton } from "./dashboard/SaveRatingsButton";
 import { useDashboardStore } from "./dashboard/DashboardState";
-import { format } from "date-fns";
 import { Pillar, KeyPractice, RatingLevel } from "@/types/ratings";
 
 const pillars: Pillar[] = [
@@ -92,7 +90,6 @@ export const Dashboard = () => {
   const { 
     projectName, 
     assessmentDate, 
-    pillarRatings,
     setProjectName, 
     setAssessmentDate,
     setPillarRatings 
@@ -157,6 +154,7 @@ export const Dashboard = () => {
     loadRatings();
   }, [projectName, assessmentDate]);
 
+  // Update URL when state changes
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     if (projectName) {
@@ -170,72 +168,12 @@ export const Dashboard = () => {
     setSearchParams(params);
   }, [projectName, assessmentDate]);
 
-  const handleSaveAllRatings = async () => {
-    try {
-      const allPromises: Promise<any>[] = [];
-      
-      Object.entries(pillarRatings).forEach(([pillarTitle, practices]) => {
-        (practices as KeyPractice[]).forEach(async (practice) => {
-          const promise = new Promise(async (resolve, reject) => {
-            const { data, error } = await supabase
-              .from("ratings")
-              .upsert({
-                project_name: projectName,
-                assessment_date: assessmentDate,
-                pillar_title: pillarTitle,
-                practice_name: practice.name,
-                rating: practice.rating
-              }, {
-                onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-              })
-              .select();
-
-            if (error) reject(error);
-            else resolve(data);
-          });
-            
-          allPromises.push(promise);
-        });
-      });
-      
-      await Promise.all(allPromises);
-      toast.success("Successfully saved all ratings");
-    } catch (error) {
-      console.error("Error saving ratings:", error);
-      toast.error("Failed to save ratings");
-    }
-  };
-
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-4xl font-bold">AI Robustness Rating</h1>
-            <p className="text-gray-500">
-              Evaluate your organization's AI implementation across key pillars
-            </p>
-            <ProjectInfo
-              projectName={projectName}
-              setProjectName={setProjectName}
-              assessmentDate={assessmentDate}
-              setAssessmentDate={setAssessmentDate}
-            />
-          </div>
-          <RatingKey />
-        </div>
-
+        <DashboardHeader />
         <PillarGrid pillars={pillars} />
-
-        <div className="flex justify-center pt-8">
-          <Button 
-            onClick={handleSaveAllRatings}
-            className="px-8"
-            size="lg"
-          >
-            Save All Ratings
-          </Button>
-        </div>
+        <SaveRatingsButton />
       </div>
     </div>
   );

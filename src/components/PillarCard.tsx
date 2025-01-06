@@ -59,7 +59,6 @@ export const PillarCard = ({
     };
     setPractices(updatedPractices);
     
-    // Update the complete ratings object
     const updatedRatings = {
       ...currentRatings,
       [title]: updatedPractices
