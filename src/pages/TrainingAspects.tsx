@@ -117,21 +117,25 @@ const TrainingAspects = () => {
     }
 
     try {
+      console.log('Saving training rating for:', projectName, assessmentDate);
       const overallRating = calculateOverallRating();
       
       const { error } = await supabase
         .from("ratings")
-        .insert({
+        .upsert({
           project_name: projectName,
           assessment_date: assessmentDate,
           pillar_title: "People",
           practice_name: "Training and Upskilling",
           rating: overallRating
-        })
-        .select();
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name',
+          ignoreDuplicates: false
+        });
 
       if (error) throw error;
       
+      console.log('Successfully saved training rating:', overallRating);
       toast.success("Training aspects saved successfully");
       navigate('/');
     } catch (error) {
