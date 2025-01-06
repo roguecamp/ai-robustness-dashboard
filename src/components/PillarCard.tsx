@@ -74,7 +74,7 @@ export const PillarCard = ({
         navigate(`/intellectual-property-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       } else if (practice.name === "Ethical Considerations") {
-        navigate(`/ethical-considerations-aspects?project={projectName}&date=${assessmentDate}`);
+        navigate(`/ethical-considerations-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       } else if (practice.name === "Compliance and Regulation") {
         navigate(`/compliance-regulation-aspects?project=${projectName}&date=${assessmentDate}`);
@@ -86,6 +86,9 @@ export const PillarCard = ({
         return;
       } else if (practice.name === "Model Development and Training") {
         navigate(`/model-development-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      } else if (practice.name === "Deployment and Monitoring") {
+        navigate(`/deployment-monitoring-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       }
     }
