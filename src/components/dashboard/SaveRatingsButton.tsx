@@ -8,11 +8,9 @@ export const SaveRatingsButton = () => {
 
   const handleSaveAllRatings = async () => {
     try {
-      const allPromises: Promise<any>[] = [];
-      
-      Object.entries(pillarRatings).forEach(([pillarTitle, practices]) => {
-        practices.forEach(async (practice) => {
-          const promise = supabase
+      const promises = Object.entries(pillarRatings).flatMap(([pillarTitle, practices]) =>
+        practices.map(practice => 
+          supabase
             .from("ratings")
             .upsert({
               project_name: projectName,
@@ -23,13 +21,15 @@ export const SaveRatingsButton = () => {
             }, {
               onConflict: 'project_name,assessment_date,pillar_title,practice_name'
             })
-            .select();
-            
-          allPromises.push(promise);
-        });
-      });
+            .select()
+            .then(result => {
+              if (result.error) throw result.error;
+              return result;
+            })
+        )
+      );
       
-      await Promise.all(allPromises);
+      await Promise.all(promises);
       toast.success("Successfully saved all ratings");
     } catch (error) {
       console.error("Error saving ratings:", error);
