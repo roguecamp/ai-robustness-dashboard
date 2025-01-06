@@ -1,59 +1,50 @@
-import { useState, useEffect } from "react";
-import { AspectCard } from "./AspectCard";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { AspectCard } from "./AspectCard";
 import type { InfrastructureAspect } from "@/types/infrastructure";
 
 interface InfrastructureAspectListProps {
-  projectName: string | null;
-  assessmentDate: string | null;
   aspects: InfrastructureAspect[];
   onAspectClick: (index: number) => void;
+  projectName: string | null;
+  assessmentDate: string | null;
 }
 
 export const InfrastructureAspectList = ({
-  projectName,
-  assessmentDate,
   aspects,
   onAspectClick,
+  projectName,
+  assessmentDate,
 }: InfrastructureAspectListProps) => {
-  const [loadedAspects, setLoadedAspects] = useState<InfrastructureAspect[]>(aspects);
-
   useEffect(() => {
-    const loadAspectRatings = async () => {
+    const loadRatings = async () => {
       if (!projectName || !assessmentDate) return;
 
       try {
         const { data: ratings, error } = await supabase
-          .from('ratings')
-          .select('practice_name, rating')
-          .eq('project_name', projectName)
-          .eq('assessment_date', assessmentDate)
-          .eq('pillar_title', 'Solution')
-          .like('practice_name', 'Infrastructure:%');
+          .from("ratings")
+          .select("*")
+          .eq("project_name", projectName)
+          .eq("assessment_date", assessmentDate)
+          .eq("pillar_title", "Solution")
+          .like("practice_name", "Infrastructure:%");
 
         if (error) throw error;
 
-        if (ratings && ratings.length > 0) {
-          const updatedAspects = aspects.map(aspect => {
-            const matchingRating = ratings.find(r => r.practice_name === `Infrastructure:${aspect.name}`);
-            return {
-              ...aspect,
-              rating: matchingRating?.rating as InfrastructureAspect["rating"] || null
-            };
-          });
-          setLoadedAspects(updatedAspects);
-        }
+        console.log("Loaded infrastructure ratings:", ratings);
       } catch (error) {
-        console.error("Error loading ratings:", error);
+        console.error("Error loading infrastructure ratings:", error);
+        toast.error("Failed to load ratings");
       }
     };
 
-    loadAspectRatings();
-  }, [projectName, assessmentDate, aspects]);
+    loadRatings();
+  }, [projectName, assessmentDate]);
 
   return (
-    <div className="grid gap-4">
-      {loadedAspects.map((aspect, index) => (
+    <div className="space-y-4">
+      {aspects.map((aspect, index) => (
         <AspectCard
           key={aspect.name}
           aspect={aspect}

@@ -1,10 +1,11 @@
 import type { InfrastructureAspect } from "@/types/infrastructure";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateOverallRating = (aspects: InfrastructureAspect[]) => {
+export const calculateOverallRating = (aspects: InfrastructureAspect[]): RatingLevel => {
   const ratingScores = {
     "Largely in Place": 2,
     "Somewhat in Place": 1,
-    "Not in Place": 0
+    "Not in Place": 0,
   };
 
   const totalScore = aspects.reduce((sum, aspect) => {
