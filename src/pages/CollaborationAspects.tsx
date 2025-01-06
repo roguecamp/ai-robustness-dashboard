@@ -24,23 +24,6 @@ export default function CollaborationAspects() {
     try {
       console.log("Saving collaboration ratings...");
       
-      // Save individual aspect ratings
-      for (const aspect of aspects) {
-        const { error: aspectError } = await supabase
-          .from("ratings")
-          .upsert({
-            project_name: projectName,
-            assessment_date: assessmentDate,
-            pillar_title: "People",
-            practice_name: `Collaboration:${aspect.name}`,
-            rating: aspect.rating
-          }, {
-            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-          });
-
-        if (aspectError) throw aspectError;
-      }
-
       // Calculate and save the overall rating
       const overallRating = calculateOverallRating(aspects);
       
@@ -58,7 +41,7 @@ export default function CollaborationAspects() {
 
       if (error) throw error;
       
-      console.log("Successfully saved collaboration ratings");
+      console.log("Successfully saved collaboration overall rating:", overallRating);
       toast.success("Collaboration aspects saved successfully");
       navigate('/');
     } catch (error) {

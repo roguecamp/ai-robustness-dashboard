@@ -57,19 +57,20 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "People")
-          .eq("practice_name", "Collaboration");
+          .like("practice_name", 'Collaboration:%');
 
         if (error) throw error;
 
+        console.log("Loaded collaboration ratings:", ratings);
+
         if (ratings && ratings.length > 0) {
-          console.log("Loaded collaboration ratings:", ratings);
           const savedAspects = [...initialAspects];
           ratings.forEach(rating => {
             const aspectName = rating.practice_name.replace("Collaboration:", "");
             const aspectIndex = savedAspects.findIndex(
               aspect => aspect.name === aspectName
             );
-            if (aspectIndex !== -1 && rating.rating) {
+            if (aspectIndex !== -1) {
               savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
             }
           });
@@ -84,7 +85,12 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
     loadRatings();
   }, [projectName, assessmentDate]);
 
-  const handleAspectClick = (index: number) => {
+  const handleAspectClick = async (index: number) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     const ratings: RatingLevel[] = [
       "Largely in Place",
       "Somewhat in Place",
@@ -95,9 +101,32 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
-    const newAspects = [...aspects];
-    newAspects[index] = { ...aspects[index], rating: nextRating };
-    setAspects(newAspects);
+    try {
+      // Save the individual aspect rating
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "People",
+          practice_name: `Collaboration:${aspects[index].name}`,
+          rating: nextRating
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      // Update local state
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], rating: nextRating };
+      setAspects(newAspects);
+
+      console.log(`Updated aspect ${aspects[index].name} to ${nextRating}`);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
   };
 
   return {
