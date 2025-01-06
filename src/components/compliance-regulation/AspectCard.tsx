@@ -1,6 +1,5 @@
-import { ComplianceRegulationAspect } from "@/types/compliance-regulation";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import type { ComplianceRegulationAspect } from "@/types/compliance-regulation";
 
 interface AspectCardProps {
   aspect: ComplianceRegulationAspect;
@@ -8,34 +7,26 @@ interface AspectCardProps {
 }
 
 export const AspectCard = ({ aspect, onClick }: AspectCardProps) => {
-  const getRatingColor = (rating: string | null) => {
+  const getRatingColor = (rating: ComplianceRegulationAspect["rating"]) => {
     switch (rating) {
       case "Largely in Place":
-        return "bg-green-100 hover:bg-green-200";
+        return "bg-green-700 text-white";
       case "Somewhat in Place":
-        return "bg-yellow-100 hover:bg-yellow-200";
+        return "bg-green-300";
       case "Not in Place":
-        return "bg-red-100 hover:bg-red-200";
+        return "bg-white border border-gray-200";
       default:
-        return "bg-gray-100 hover:bg-gray-200";
+        return "bg-gray-100 border border-gray-200";
     }
   };
 
   return (
-    <Card 
-      className={cn(
-        "cursor-pointer transition-colors",
-        getRatingColor(aspect.rating)
-      )}
+    <Card
+      className={`p-4 cursor-pointer transition-colors duration-200 ${getRatingColor(aspect.rating)}`}
       onClick={onClick}
     >
-      <CardHeader>
-        <CardTitle className="text-lg">{aspect.name}</CardTitle>
-        <CardDescription>{aspect.description}</CardDescription>
-        <div className="mt-2 text-sm font-medium">
-          Rating: {aspect.rating || "Not Rated"}
-        </div>
-      </CardHeader>
+      <h3 className="font-semibold">{aspect.name}</h3>
+      <p className="text-sm mt-1">{aspect.description}</p>
     </Card>
   );
 };
