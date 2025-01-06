@@ -80,14 +80,13 @@ export const PillarCard = ({
 
   const isSecurityPillar = title === "Security";
   const collaborationRating = practices.find(p => p.name === "Collaboration")?.rating;
-  const cardBackgroundColor = getCardBackgroundColor();
   const isLargelyInPlace = collaborationRating === "Largely in Place";
 
   return (
     <div
       className={cn(
         "rounded-2xl p-6 transition-all duration-300 hover:shadow-xl",
-        cardBackgroundColor,
+        getCardBackgroundColor(),
         className
       )}
     >
