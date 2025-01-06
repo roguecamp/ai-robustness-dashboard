@@ -54,6 +54,9 @@ export const PillarCard = ({
       } else if (practice.name === "Scalability and Adoption") {
         navigate(`/scalability-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
+      } else if (practice.name === "Innovation Framework") {
+        navigate(`/innovation-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
       }
     }
 
