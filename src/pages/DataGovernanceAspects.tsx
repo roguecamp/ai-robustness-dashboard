@@ -7,7 +7,6 @@ import { DataGovernanceAspect } from "@/types/data-governance";
 import { calculateOverallRating } from "@/utils/dataGovernanceScoring";
 import { AspectCard } from "@/components/data-governance/AspectCard";
 import { RatingKey } from "@/components/shared/RatingKey";
-import { RatingLevel } from "@/types/ratings";
 
 const initialAspects: DataGovernanceAspect[] = [
   {
@@ -53,16 +52,20 @@ export default function DataGovernanceAspects() {
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
   const [aspects, setAspects] = useState<DataGovernanceAspect[]>(initialAspects);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadRatings = async () => {
-      if (!projectName || !assessmentDate) return;
+    const loadAspectRatings = async () => {
+      if (!projectName || !assessmentDate) {
+        setIsLoading(false);
+        return;
+      }
 
       try {
         console.log("Loading data governance ratings for:", projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from("ratings")
-          .select("*")
+          .select("practice_name, rating")
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Data")
@@ -72,46 +75,49 @@ export default function DataGovernanceAspects() {
 
         if (ratings && ratings.length > 0) {
           console.log("Loaded data governance ratings:", ratings);
-          const savedAspects = [...initialAspects];
-          ratings.forEach(rating => {
-            const aspectName = rating.practice_name.replace("DataGovernance:", "");
-            const aspectIndex = savedAspects.findIndex(
-              aspect => aspect.name === aspectName
-            );
-            if (aspectIndex !== -1 && rating.rating) {
-              savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
-            }
+          const updatedAspects = aspects.map(aspect => {
+            const matchingRating = ratings.find(r => r.practice_name === `DataGovernance:${aspect.name}`);
+            return {
+              ...aspect,
+              rating: matchingRating?.rating as DataGovernanceAspect["rating"] || null
+            };
           });
-          setAspects(savedAspects);
+          setAspects(updatedAspects);
         }
       } catch (error) {
-        console.error("Error loading data governance ratings:", error);
-        toast.error("Failed to load ratings");
+        console.error("Error loading ratings:", error);
+        toast.error("Failed to load aspect ratings");
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    loadRatings();
+    loadAspectRatings();
   }, [projectName, assessmentDate]);
 
   const handleAspectClick = (index: number) => {
-    const ratings: RatingLevel[] = [
+    const ratings: DataGovernanceAspect["rating"][] = [
       "Largely in Place",
       "Somewhat in Place",
       "Not in Place"
     ];
     
+    const updatedAspects = [...aspects];
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
-    const nextRating = ratings[(currentIndex + 1) % ratings.length];
+    const nextIndex = (currentIndex + 1) % ratings.length;
     
-    const newAspects = [...aspects];
-    newAspects[index] = { ...aspects[index], rating: nextRating };
-    setAspects(newAspects);
+    updatedAspects[index] = {
+      ...aspects[index],
+      rating: ratings[nextIndex]
+    };
+    
+    setAspects(updatedAspects);
   };
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
-      toast.error("Project name and assessment date are required");
+      toast.error("Missing project information");
       return;
     }
 
@@ -129,14 +135,18 @@ export default function DataGovernanceAspects() {
             practice_name: `DataGovernance:${aspect.name}`,
             rating: aspect.rating
           }, {
-            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+            onConflict: "project_name,assessment_date,pillar_title,practice_name"
           });
 
-        if (aspectError) throw aspectError;
+        if (aspectError) {
+          console.error(`Error saving aspect ${aspect.name}:`, aspectError);
+          throw aspectError;
+        }
       }
 
       // Calculate and save the overall rating
       const overallRating = calculateOverallRating(aspects);
+      console.log("Saving overall rating:", overallRating);
       
       const { error } = await supabase
         .from("ratings")
@@ -147,22 +157,35 @@ export default function DataGovernanceAspects() {
           practice_name: "Data Governance",
           rating: overallRating
         }, {
-          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+          onConflict: "project_name,assessment_date,pillar_title,practice_name"
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error saving overall rating:", error);
+        throw error;
+      }
       
-      console.log("Successfully saved data governance ratings");
       toast.success("Data governance aspects saved successfully");
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error("Error saving data governance ratings:", error);
+      console.error("Error saving ratings:", error);
       toast.error("Failed to save ratings");
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4">Loading data governance aspects...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto py-8">
+    <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-between items-start">
           <div>
@@ -173,7 +196,7 @@ export default function DataGovernanceAspects() {
           </div>
           <div className="flex gap-4 items-start">
             <RatingKey />
-            <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
+            <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
           </div>
         </div>
 
