@@ -1,17 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RatingCircle } from "./RatingCircle";
-import type { Pillar } from "@/types/ratings";
+import type { RatingLevel } from "@/types/ratings";
 
 interface PillarCardProps {
   title: string;
   description: string;
   color: string;
-  keyPractices: { name: string; rating: string | null }[];
-  onUpdate: (ratings: Record<string, string | null>) => void;
+  keyPractices: { name: string; rating: RatingLevel | null }[];
+  onUpdate: (ratings: Record<string, RatingLevel | null>) => void;
   projectName: string | null;
   assessmentDate: string | null;
-  currentRatings: Record<string, string | null>;
+  currentRatings: Record<string, RatingLevel | null>;
 }
 
 export const PillarCard = ({
@@ -55,7 +55,7 @@ export const PillarCard = ({
             className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
           >
             <span className="text-sm font-medium">{practice.name}</span>
-            <RatingCircle rating={currentRatings[practice.name]} />
+            <RatingCircle value={currentRatings[practice.name]} />
           </div>
         ))}
       </CardContent>

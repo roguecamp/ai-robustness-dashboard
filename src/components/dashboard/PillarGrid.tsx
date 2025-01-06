@@ -1,5 +1,5 @@
 import { PillarCard } from "../PillarCard";
-import { Pillar } from "@/types/ratings";
+import { Pillar, RatingLevel } from "@/types/ratings";
 import { useDashboardStore } from "./DashboardState";
 
 interface PillarGridProps {
@@ -10,8 +10,8 @@ export const PillarGrid = ({ pillars }: PillarGridProps) => {
   const { projectName, assessmentDate, pillarRatings, setPillarRatings } = useDashboardStore();
 
   // Convert pillarRatings to the format expected by PillarCard
-  const convertRatings = (ratings: Record<string, { name: string; rating: string | null }[]>): Record<string, string | null> => {
-    const result: Record<string, string | null> = {};
+  const convertRatings = (ratings: Record<string, { name: string; rating: RatingLevel | null }[]>): Record<string, RatingLevel | null> => {
+    const result: Record<string, RatingLevel | null> = {};
     Object.values(ratings).flat().forEach(practice => {
       result[practice.name] = practice.rating;
     });
@@ -38,7 +38,7 @@ export const PillarGrid = ({ pillars }: PillarGridProps) => {
                     rating: practice.name === name ? rating : practice.rating
                   }));
                   return acc;
-                }, {} as Record<string, { name: string; rating: string | null }[]>);
+                }, {} as Record<string, { name: string; rating: RatingLevel | null }[]>);
                 setPillarRatings(newRatings);
               }}
               projectName={projectName}
@@ -59,7 +59,7 @@ export const PillarGrid = ({ pillars }: PillarGridProps) => {
                   rating: practice.name === name ? rating : practice.rating
                 }));
                 return acc;
-              }, {} as Record<string, { name: string; rating: string | null }[]>);
+              }, {} as Record<string, { name: string; rating: RatingLevel | null }[]>);
               setPillarRatings(newRatings);
             }}
             projectName={projectName}
