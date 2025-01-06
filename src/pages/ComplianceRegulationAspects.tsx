@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ComplianceRegulationAspect } from "@/types/compliance-regulation";
 import { calculateOverallRating } from "@/utils/complianceRegulationScoring";
 import { AspectCard } from "@/components/compliance-regulation/AspectCard";
+import { RatingLevel } from "@/types/ratings";
 
 const initialAspects: ComplianceRegulationAspect[] = [
   {
@@ -71,10 +72,12 @@ const ComplianceRegulationAspects = () => {
           const savedAspects = [...aspects];
           ratings.forEach(rating => {
             const aspectIndex = savedAspects.findIndex(
-              aspect => aspect.name === rating.aspect_name
+              aspect => aspect.name === rating.practice_name
             );
-            if (aspectIndex !== -1) {
-              savedAspects[aspectIndex].rating = rating.rating;
+            if (aspectIndex !== -1 && rating.rating) {
+              // Ensure the rating is one of the valid RatingLevel values
+              const typedRating = rating.rating as RatingLevel;
+              savedAspects[aspectIndex].rating = typedRating;
             }
           });
           setAspects(savedAspects);
@@ -91,7 +94,7 @@ const ComplianceRegulationAspects = () => {
   const handleAspectClick = (index: number) => {
     const newAspects = [...aspects];
     const currentRating = aspects[index].rating;
-    const ratings: ("Largely in Place" | "Somewhat in Place" | "Not in Place")[] = [
+    const ratings: RatingLevel[] = [
       "Largely in Place",
       "Somewhat in Place",
       "Not in Place"
@@ -136,8 +139,7 @@ const ComplianceRegulationAspects = () => {
               project_name: projectName,
               assessment_date: assessmentDate,
               pillar_title: "Legal",
-              practice_name: "Compliance and Regulation",
-              aspect_name: aspect.name,
+              practice_name: aspect.name,
               rating: aspect.rating
             });
 
