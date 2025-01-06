@@ -70,21 +70,36 @@ export const PillarCard = ({
     }
   };
 
+  const getCardBackgroundColor = () => {
+    if (title === "People" && practices.find(p => p.name === "Collaboration")?.rating) {
+      const collaborationRating = practices.find(p => p.name === "Collaboration")?.rating;
+      return getRatingColor(collaborationRating);
+    }
+    return "glass-card";
+  };
+
   const isSecurityPillar = title === "Security";
 
   return (
     <div
       className={cn(
-        "glass-card rounded-2xl p-6 transition-all duration-300 hover:shadow-xl",
+        "rounded-2xl p-6 transition-all duration-300 hover:shadow-xl",
+        getCardBackgroundColor(),
         className
       )}
     >
       <div className="space-y-6">
         <div>
-          <h3 className="text-xl font-semibold" style={{ color }}>
+          <h3 className={cn(
+            "text-xl font-semibold",
+            practices.find(p => p.name === "Collaboration")?.rating === "Largely in Place" ? "text-white" : ""
+          )} style={{ color: title === "People" && practices.find(p => p.name === "Collaboration")?.rating ? undefined : color }}>
             {title}
           </h3>
-          <p className="text-sm text-gray-500">{description}</p>
+          <p className={cn(
+            "text-sm",
+            practices.find(p => p.name === "Collaboration")?.rating === "Largely in Place" ? "text-white/80" : "text-gray-500"
+          )}>{description}</p>
         </div>
         
         <div className={cn(
