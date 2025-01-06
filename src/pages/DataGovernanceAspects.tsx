@@ -59,7 +59,7 @@ export default function DataGovernanceAspects() {
       if (!projectName || !assessmentDate) return;
 
       try {
-        console.log("Loading ratings for:", projectName, assessmentDate);
+        console.log("Loading data governance ratings for:", projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from("ratings")
           .select("*")
@@ -71,22 +71,21 @@ export default function DataGovernanceAspects() {
         if (error) throw error;
 
         if (ratings && ratings.length > 0) {
-          console.log("Loaded ratings:", ratings);
-          const savedAspects = [...aspects];
+          console.log("Loaded data governance ratings:", ratings);
+          const savedAspects = [...initialAspects];
           ratings.forEach(rating => {
             const aspectName = rating.practice_name.replace("DataGovernance:", "");
             const aspectIndex = savedAspects.findIndex(
               aspect => aspect.name === aspectName
             );
             if (aspectIndex !== -1 && rating.rating) {
-              const typedRating = rating.rating as RatingLevel;
-              savedAspects[aspectIndex].rating = typedRating;
+              savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
             }
           });
           setAspects(savedAspects);
         }
       } catch (error) {
-        console.error("Error loading ratings:", error);
+        console.error("Error loading data governance ratings:", error);
         toast.error("Failed to load ratings");
       }
     };
@@ -117,6 +116,8 @@ export default function DataGovernanceAspects() {
     }
 
     try {
+      console.log("Saving data governance ratings...");
+      
       // Save individual aspect ratings
       for (const aspect of aspects) {
         const { error: aspectError } = await supabase
@@ -151,10 +152,11 @@ export default function DataGovernanceAspects() {
 
       if (error) throw error;
       
+      console.log("Successfully saved data governance ratings");
       toast.success("Data governance aspects saved successfully");
       navigate('/');
     } catch (error) {
-      console.error("Error saving ratings:", error);
+      console.error("Error saving data governance ratings:", error);
       toast.error("Failed to save ratings");
     }
   };
