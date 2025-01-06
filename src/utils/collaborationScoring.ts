@@ -7,8 +7,9 @@ export const calculateScore = (aspects: CollaborationAspect[]): number => {
         return sum + 2;
       case "Somewhat in Place":
         return sum + 1;
+      case "Not in Place":
       default:
-        return sum;
+        return sum + 0;
     }
   }, 0);
 };
