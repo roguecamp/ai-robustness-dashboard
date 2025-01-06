@@ -73,7 +73,16 @@ export const PillarCard = ({
   const getCardBackgroundColor = () => {
     if (title === "People") {
       const collaborationRating = practices.find(p => p.name === "Collaboration")?.rating;
-      return getRatingColor(collaborationRating);
+      switch (collaborationRating) {
+        case "Largely in Place":
+          return "bg-green-700";
+        case "Somewhat in Place":
+          return "bg-green-300";
+        case "Not in Place":
+          return "bg-white border border-gray-200";
+        default:
+          return "glass-card";
+      }
     }
     return "glass-card";
   };
