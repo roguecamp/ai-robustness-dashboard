@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { AspectCard } from "@/components/infrastructure/AspectCard";
 import { RatingKey } from "@/components/dashboard/RatingKey";
 import { calculateOverallRating } from "@/utils/infrastructureScoring";
+import { InfrastructureAspectList } from "@/components/infrastructure/InfrastructureAspectList";
 import type { InfrastructureAspect } from "@/types/infrastructure";
 
 const infrastructureAspects: InfrastructureAspect[] = [
@@ -55,40 +55,6 @@ const InfrastructureAspects = () => {
   
   const [aspects, setAspects] = useState<InfrastructureAspect[]>(infrastructureAspects);
 
-  useEffect(() => {
-    const loadAspectRatings = async () => {
-      if (!projectName || !assessmentDate) return;
-
-      try {
-        const { data: ratings, error } = await supabase
-          .from('ratings')
-          .select('practice_name, rating')
-          .eq('project_name', projectName)
-          .eq('assessment_date', assessmentDate)
-          .eq('pillar_title', 'Solution')
-          .like('practice_name', 'Infrastructure:%');
-
-        if (error) throw error;
-
-        if (ratings && ratings.length > 0) {
-          const updatedAspects = aspects.map(aspect => {
-            const matchingRating = ratings.find(r => r.practice_name === `Infrastructure:${aspect.name}`);
-            return {
-              ...aspect,
-              rating: matchingRating?.rating as InfrastructureAspect["rating"] || null
-            };
-          });
-          setAspects(updatedAspects);
-        }
-      } catch (error) {
-        console.error("Error loading ratings:", error);
-        toast.error("Failed to load aspect ratings");
-      }
-    };
-
-    loadAspectRatings();
-  }, [projectName, assessmentDate]);
-
   const handleAspectClick = (index: number) => {
     const ratings: InfrastructureAspect["rating"][] = [
       "Largely in Place",
@@ -118,7 +84,6 @@ const InfrastructureAspects = () => {
     try {
       // Save individual aspect ratings
       for (const aspect of aspects) {
-        console.log(`Saving aspect: ${aspect.name} with rating: ${aspect.rating}`);
         const { error: aspectError } = await supabase
           .from('ratings')
           .upsert({
@@ -131,15 +96,11 @@ const InfrastructureAspects = () => {
             onConflict: 'project_name,assessment_date,pillar_title,practice_name'
           });
 
-        if (aspectError) {
-          console.error(`Error saving aspect ${aspect.name}:`, aspectError);
-          throw aspectError;
-        }
+        if (aspectError) throw aspectError;
       }
 
       // Calculate and save the overall infrastructure rating
       const overallRating = calculateOverallRating(aspects);
-      console.log('Saving overall rating:', overallRating);
       
       const { error } = await supabase
         .from('ratings')
@@ -153,10 +114,7 @@ const InfrastructureAspects = () => {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
-      if (error) {
-        console.error('Error saving overall rating:', error);
-        throw error;
-      }
+      if (error) throw error;
       
       toast.success("Infrastructure aspects saved successfully");
       navigate('/');
@@ -180,15 +138,12 @@ const InfrastructureAspects = () => {
           </div>
         </div>
 
-        <div className="grid gap-4">
-          {aspects.map((aspect, index) => (
-            <AspectCard
-              key={aspect.name}
-              aspect={aspect}
-              onClick={() => handleAspectClick(index)}
-            />
-          ))}
-        </div>
+        <InfrastructureAspectList
+          projectName={projectName}
+          assessmentDate={assessmentDate}
+          aspects={aspects}
+          onAspectClick={handleAspectClick}
+        />
 
         <div className="flex justify-end space-x-4">
           <Button onClick={handleSave}>Save Overall Rating</Button>
