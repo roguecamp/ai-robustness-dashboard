@@ -1,62 +1,58 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AspectCard } from "@/components/data-governance/AspectCard";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { DataGovernanceAspect } from "@/types/data-governance";
+import { supabase } from "@/integrations/supabase/client";
+import { DataGovernanceAspect } from "@/types/data-governance";
 import { calculateOverallRating } from "@/utils/dataGovernanceScoring";
+import { AspectCard } from "@/components/data-governance/AspectCard";
+import { RatingKey } from "@/components/shared/RatingKey";
+import { RatingLevel } from "@/types/ratings";
 
 const initialAspects: DataGovernanceAspect[] = [
   {
     name: "Governance Framework",
     description: "Established data governance framework with clear policies and procedures.",
-    rating: null,
+    rating: null
   },
   {
     name: "Data Ownership",
     description: "Defined data ownership and stewardship roles.",
-    rating: null,
+    rating: null
   },
   {
     name: "Metadata Management",
     description: "Effective metadata management for data discoverability and understanding.",
-    rating: null,
+    rating: null
   },
   {
     name: "Data Quality Management",
     description: "Processes to ensure and enhance data quality.",
-    rating: null,
+    rating: null
   },
   {
     name: "Data Lifecycle Management",
     description: "Managing data throughout its lifecycle from collection to deletion.",
-    rating: null,
+    rating: null
   },
   {
     name: "Data Governance Tools",
     description: "Tools to enforce data governance policies.",
-    rating: null,
+    rating: null
   },
   {
     name: "Compliance Monitoring",
     description: "Monitoring and ensuring compliance with data governance policies.",
-    rating: null,
-  },
+    rating: null
+  }
 ];
 
-const isValidRating = (rating: string | null): rating is "Largely in Place" | "Somewhat in Place" | "Not in Place" => {
-  return rating === "Largely in Place" || 
-         rating === "Somewhat in Place" || 
-         rating === "Not in Place";
-};
-
 export default function DataGovernanceAspects() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [aspects, setAspects] = useState<DataGovernanceAspect[]>(initialAspects);
+  const [searchParams] = useSearchParams();
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
+  const [aspects, setAspects] = useState<DataGovernanceAspect[]>(initialAspects);
 
   useEffect(() => {
     const loadRatings = async () => {
@@ -70,20 +66,24 @@ export default function DataGovernanceAspects() {
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Data")
-          .eq("practice_name", "Data Governance");
+          .like("practice_name", "DataGovernance:%");
 
         if (error) throw error;
 
         if (ratings && ratings.length > 0) {
           console.log("Loaded ratings:", ratings);
-          const updatedAspects = aspects.map(aspect => {
-            const rating = ratings.find(r => r.practice_name === aspect.name);
-            return {
-              ...aspect,
-              rating: isValidRating(rating?.rating) ? rating.rating : null,
-            };
+          const savedAspects = [...aspects];
+          ratings.forEach(rating => {
+            const aspectName = rating.practice_name.replace("DataGovernance:", "");
+            const aspectIndex = savedAspects.findIndex(
+              aspect => aspect.name === aspectName
+            );
+            if (aspectIndex !== -1 && rating.rating) {
+              const typedRating = rating.rating as RatingLevel;
+              savedAspects[aspectIndex].rating = typedRating;
+            }
           });
-          setAspects(updatedAspects);
+          setAspects(savedAspects);
         }
       } catch (error) {
         console.error("Error loading ratings:", error);
@@ -95,22 +95,19 @@ export default function DataGovernanceAspects() {
   }, [projectName, assessmentDate]);
 
   const handleAspectClick = (index: number) => {
-    const ratings: ("Largely in Place" | "Somewhat in Place" | "Not in Place")[] = [
+    const ratings: RatingLevel[] = [
       "Largely in Place",
       "Somewhat in Place",
-      "Not in Place",
+      "Not in Place"
     ];
     
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
-    const nextIndex = (currentIndex + 1) % ratings.length;
-
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      rating: ratings[nextIndex],
-    };
-    setAspects(updatedAspects);
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
+    
+    const newAspects = [...aspects];
+    newAspects[index] = { ...aspects[index], rating: nextRating };
+    setAspects(newAspects);
   };
 
   const handleSave = async () => {
@@ -120,32 +117,27 @@ export default function DataGovernanceAspects() {
     }
 
     try {
-      console.log("Saving ratings for aspects:", aspects);
-      
-      // Prepare the ratings for upsert
-      const ratingsToUpsert = aspects.map(aspect => ({
-        project_name: projectName,
-        assessment_date: assessmentDate,
-        pillar_title: "Data",
-        practice_name: aspect.name,
-        rating: aspect.rating
-      }));
+      // Save individual aspect ratings
+      for (const aspect of aspects) {
+        const { error: aspectError } = await supabase
+          .from("ratings")
+          .upsert({
+            project_name: projectName,
+            assessment_date: assessmentDate,
+            pillar_title: "Data",
+            practice_name: `DataGovernance:${aspect.name}`,
+            rating: aspect.rating
+          }, {
+            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+          });
 
-      // Use upsert instead of insert
-      const { error: aspectsError } = await supabase
-        .from("ratings")
-        .upsert(ratingsToUpsert, {
-          onConflict: 'project_name,assessment_date,pillar_title,practice_name',
-          ignoreDuplicates: false
-        });
-
-      if (aspectsError) throw aspectsError;
+        if (aspectError) throw aspectError;
+      }
 
       // Calculate and save the overall rating
       const overallRating = calculateOverallRating(aspects);
-      console.log("Saving overall rating:", overallRating);
       
-      const { error: overallError } = await supabase
+      const { error } = await supabase
         .from("ratings")
         .upsert({
           project_name: projectName,
@@ -154,13 +146,12 @@ export default function DataGovernanceAspects() {
           practice_name: "Data Governance",
           rating: overallRating
         }, {
-          onConflict: 'project_name,assessment_date,pillar_title,practice_name',
-          ignoreDuplicates: false
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
-      if (overallError) throw overallError;
+      if (error) throw error;
       
-      toast.success("Ratings saved successfully");
+      toast.success("Data governance aspects saved successfully");
       navigate('/');
     } catch (error) {
       console.error("Error saving ratings:", error);
@@ -171,14 +162,17 @@ export default function DataGovernanceAspects() {
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold mb-2">Data Governance Aspects</h1>
             <p className="text-gray-600">
               Rate each aspect of Data Governance by clicking on the cards. Click multiple times to cycle through ratings.
             </p>
           </div>
-          <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
+          <div className="flex gap-4 items-start">
+            <RatingKey />
+            <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
+          </div>
         </div>
 
         <div className="grid gap-4">
@@ -192,7 +186,7 @@ export default function DataGovernanceAspects() {
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={handleSave}>Save Ratings</Button>
+          <Button onClick={handleSave}>Save Overall Rating</Button>
         </div>
       </div>
     </div>
