@@ -5,9 +5,10 @@ import type { KeyPractice, RatingLevel, Pillar } from "@/types/ratings";
 
 interface PillarCardProps extends Pillar {
   className?: string;
-  onUpdate?: (pillarTitle: string, practices: KeyPractice[]) => void;
+  onUpdate: (ratings: Record<string, KeyPractice[]>) => void;
   projectName?: string;
   assessmentDate?: string;
+  currentRatings: Record<string, KeyPractice[]>;
 }
 
 export const PillarCard = ({
@@ -19,11 +20,11 @@ export const PillarCard = ({
   onUpdate,
   projectName,
   assessmentDate,
+  currentRatings,
 }: PillarCardProps) => {
   const navigate = useNavigate();
   const [practices, setPractices] = useState<KeyPractice[]>(keyPractices);
 
-  // Add useEffect to sync practices state with keyPractices prop
   useEffect(() => {
     console.log(`Updating practices for ${title}:`, keyPractices);
     setPractices(keyPractices);
@@ -57,9 +58,13 @@ export const PillarCard = ({
       rating: value,
     };
     setPractices(updatedPractices);
-    if (onUpdate) {
-      onUpdate(title, updatedPractices);
-    }
+    
+    // Update the complete ratings object
+    const updatedRatings = {
+      ...currentRatings,
+      [title]: updatedPractices
+    };
+    onUpdate(updatedRatings);
     console.log(`Updated ${title} - ${practices[practiceIndex].name}: ${value}`);
   };
 

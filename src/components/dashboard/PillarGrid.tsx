@@ -7,7 +7,7 @@ interface PillarGridProps {
 }
 
 export const PillarGrid = ({ pillars }: PillarGridProps) => {
-  const { projectName, assessmentDate, setPillarRatings } = useDashboardStore();
+  const { projectName, assessmentDate, pillarRatings, setPillarRatings } = useDashboardStore();
 
   return (
     <div className="space-y-6">
@@ -25,6 +25,7 @@ export const PillarGrid = ({ pillars }: PillarGridProps) => {
               onUpdate={setPillarRatings}
               projectName={projectName}
               assessmentDate={assessmentDate}
+              currentRatings={pillarRatings}
             />
           </div>
         ))}
@@ -36,6 +37,7 @@ export const PillarGrid = ({ pillars }: PillarGridProps) => {
             onUpdate={setPillarRatings}
             projectName={projectName}
             assessmentDate={assessmentDate}
+            currentRatings={pillarRatings}
           />
         </div>
       </div>

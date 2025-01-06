@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { PillarGrid } from "./dashboard/PillarGrid";
 import { useDashboardStore } from "./dashboard/DashboardState";
 import { format } from "date-fns";
-import { Pillar, KeyPractice } from "@/types/ratings";
+import { Pillar, KeyPractice, RatingLevel } from "@/types/ratings";
 
 const pillars: Pillar[] = [
   {
@@ -81,6 +81,12 @@ const pillars: Pillar[] = [
   },
 ];
 
+const isValidRating = (rating: string | null): rating is RatingLevel => {
+  return rating === "Largely in Place" || 
+         rating === "Somewhat in Place" || 
+         rating === "Not in Place";
+};
+
 export const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { 
@@ -133,7 +139,7 @@ export const Dashboard = () => {
               );
               return {
                 name: practice.name,
-                rating: rating?.rating || null
+                rating: isValidRating(rating?.rating) ? rating.rating : null
               };
             });
             pillarRatingsMap[pillar.title] = pillarRatings;
@@ -151,7 +157,6 @@ export const Dashboard = () => {
     loadRatings();
   }, [projectName, assessmentDate]);
 
-  // Update URL when state changes
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     if (projectName) {
