@@ -1,84 +1,91 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AspectCard } from "@/components/data-privacy/AspectCard";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { DataPrivacyAspect } from "@/types/data-privacy";
+import { supabase } from "@/integrations/supabase/client";
+import { AspectCard } from "@/components/data-privacy/AspectCard";
 import { calculateOverallRating } from "@/utils/dataPrivacyScoring";
+import type { DataPrivacyAspect } from "@/types/data-privacy";
+import { RatingKey } from "@/components/shared/RatingKey";
+import { RatingLevel } from "@/types/ratings";
 
 const initialAspects: DataPrivacyAspect[] = [
   {
     name: "Privacy Policies",
     description: "Established and communicated data privacy policies.",
-    rating: null,
+    rating: null
   },
   {
     name: "Privacy Measures",
     description: "Categorize levels of data privacy.",
-    rating: null,
+    rating: null
   },
   {
     name: "Compliance with Laws",
     description: "Compliance with data protection laws and regulations (e.g., GDPR, CCPA).",
-    rating: null,
+    rating: null
   },
   {
     name: "Data Encryption",
     description: "Encryption of sensitive data both in transit and at rest.",
-    rating: null,
+    rating: null
   },
   {
     name: "Access Controls",
     description: "Role-based access controls to restrict data access.",
-    rating: null,
+    rating: null
   },
   {
     name: "Privacy Auditing",
     description: "Test for or scan potential privacy issues in your data.",
-    rating: null,
+    rating: null
   },
   {
     name: "Incident Response",
     description: "Effective incident response plans for data breaches compromising privacy.",
-    rating: null,
-  },
+    rating: null
+  }
 ];
 
 export default function DataPrivacyAspects() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [aspects, setAspects] = useState<DataPrivacyAspect[]>(initialAspects);
+  const [searchParams] = useSearchParams();
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
+  const [aspects, setAspects] = useState<DataPrivacyAspect[]>(initialAspects);
 
   useEffect(() => {
     const loadRatings = async () => {
       if (!projectName || !assessmentDate) return;
 
       try {
+        console.log("Loading data privacy ratings for:", projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from("ratings")
           .select("*")
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Data")
-          .eq("practice_name", "Data Privacy");
+          .like("practice_name", "DataPrivacy:%");
 
         if (error) throw error;
 
         if (ratings && ratings.length > 0) {
-          const updatedAspects = aspects.map(aspect => {
-            const rating = ratings.find(r => r.practice_name === aspect.name);
-            return {
-              ...aspect,
-              rating: rating?.rating as DataPrivacyAspect["rating"] || null,
-            };
+          console.log("Loaded data privacy ratings:", ratings);
+          const savedAspects = [...initialAspects];
+          ratings.forEach(rating => {
+            const aspectName = rating.practice_name.replace("DataPrivacy:", "");
+            const aspectIndex = savedAspects.findIndex(
+              aspect => aspect.name === aspectName
+            );
+            if (aspectIndex !== -1 && rating.rating) {
+              savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
+            }
           });
-          setAspects(updatedAspects);
+          setAspects(savedAspects);
         }
       } catch (error) {
-        console.error("Error loading ratings:", error);
+        console.error("Error loading data privacy ratings:", error);
         toast.error("Failed to load ratings");
       }
     };
@@ -87,22 +94,19 @@ export default function DataPrivacyAspects() {
   }, [projectName, assessmentDate]);
 
   const handleAspectClick = (index: number) => {
-    const ratings: ("Largely in Place" | "Somewhat in Place" | "Not in Place")[] = [
+    const ratings: RatingLevel[] = [
       "Largely in Place",
       "Somewhat in Place",
-      "Not in Place",
+      "Not in Place"
     ];
     
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
-    const nextIndex = (currentIndex + 1) % ratings.length;
-
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      rating: ratings[nextIndex],
-    };
-    setAspects(updatedAspects);
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
+    
+    const newAspects = [...aspects];
+    newAspects[index] = { ...aspects[index], rating: nextRating };
+    setAspects(newAspects);
   };
 
   const handleSave = async () => {
@@ -112,47 +116,47 @@ export default function DataPrivacyAspects() {
     }
 
     try {
-      // Delete existing ratings for this practice
-      await supabase
-        .from("ratings")
-        .delete()
-        .eq("project_name", projectName)
-        .eq("assessment_date", assessmentDate)
-        .eq("pillar_title", "Data")
-        .eq("practice_name", "Data Privacy");
+      console.log("Saving data privacy ratings...");
+      
+      // Save individual aspect ratings
+      for (const aspect of aspects) {
+        const { error: aspectError } = await supabase
+          .from("ratings")
+          .upsert({
+            project_name: projectName,
+            assessment_date: assessmentDate,
+            pillar_title: "Data",
+            practice_name: `DataPrivacy:${aspect.name}`,
+            rating: aspect.rating
+          }, {
+            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+          });
 
-      // Insert new ratings
-      const ratingsToInsert = aspects.map(aspect => ({
-        project_name: projectName,
-        assessment_date: assessmentDate,
-        pillar_title: "Data",
-        practice_name: aspect.name,
-        rating: aspect.rating,
-      }));
+        if (aspectError) throw aspectError;
+      }
 
-      const { error } = await supabase.from("ratings").insert(ratingsToInsert);
-
-      if (error) throw error;
-
+      // Calculate and save the overall rating
       const overallRating = calculateOverallRating(aspects);
       
-      // Update the overall rating for Data Privacy
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from("ratings")
         .upsert({
           project_name: projectName,
           assessment_date: assessmentDate,
           pillar_title: "Data",
           practice_name: "Data Privacy",
-          rating: overallRating,
+          rating: overallRating
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
-      if (updateError) throw updateError;
-
-      toast.success("Ratings saved successfully");
+      if (error) throw error;
+      
+      console.log("Successfully saved data privacy ratings");
+      toast.success("Data privacy aspects saved successfully");
       navigate('/');
     } catch (error) {
-      console.error("Error saving ratings:", error);
+      console.error("Error saving data privacy ratings:", error);
       toast.error("Failed to save ratings");
     }
   };
@@ -160,14 +164,17 @@ export default function DataPrivacyAspects() {
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold mb-2">Data Privacy Aspects</h1>
             <p className="text-gray-600">
               Rate each aspect of Data Privacy by clicking on the cards. Click multiple times to cycle through ratings.
             </p>
           </div>
-          <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
+          <div className="flex gap-4 items-start">
+            <RatingKey />
+            <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
+          </div>
         </div>
 
         <div className="grid gap-4">
