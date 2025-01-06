@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { Button } from "./ui/button";
 import { ProjectInfo } from "./dashboard/ProjectInfo";
 import { RatingKey } from "./dashboard/RatingKey";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 
 const pillars: Pillar[] = [
   {
@@ -81,19 +81,38 @@ const pillars: Pillar[] = [
 
 export const Dashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const [projectName, setProjectName] = useState(queryParams.get('project') || "");
-  const [assessmentDate, setAssessmentDate] = useState(queryParams.get('date') || format(new Date(), "yyyy-MM-dd"));
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [projectName, setProjectName] = useState(searchParams.get('project') || "");
+  const [assessmentDate, setAssessmentDate] = useState(searchParams.get('date') || format(new Date(), "yyyy-MM-dd"));
   const [pillarRatings, setPillarRatings] = useState<Record<string, { name: string; rating: string | null }[]>>({});
+
+  useEffect(() => {
+    // Update state from URL parameters when component mounts or URL changes
+    const projectParam = searchParams.get('project');
+    const dateParam = searchParams.get('date');
+    
+    if (projectParam && projectParam !== projectName) {
+      setProjectName(projectParam);
+    }
+    
+    if (dateParam && dateParam !== assessmentDate) {
+      setAssessmentDate(dateParam);
+    }
+  }, [searchParams]);
 
   // Update URL when project name or date changes
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (projectName) params.set('project', projectName);
-    if (assessmentDate) params.set('date', assessmentDate);
-    navigate(`?${params.toString()}`, { replace: true });
-  }, [projectName, assessmentDate, navigate]);
+    const params = new URLSearchParams(searchParams);
+    if (projectName) {
+      params.set('project', projectName);
+    } else {
+      params.delete('project');
+    }
+    if (assessmentDate) {
+      params.set('date', assessmentDate);
+    }
+    setSearchParams(params);
+  }, [projectName, assessmentDate]);
 
   const handleUpdateRatings = (pillarTitle: string, practices: { name: string; rating: string | null }[]) => {
     setPillarRatings(prev => ({
