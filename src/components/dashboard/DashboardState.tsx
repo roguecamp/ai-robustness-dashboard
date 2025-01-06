@@ -9,6 +9,7 @@ interface DashboardState {
   setProjectName: (name: string) => void;
   setAssessmentDate: (date: string) => void;
   setPillarRatings: (ratings: Record<string, KeyPractice[]>) => void;
+  resetPillarRatings: () => void;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -18,4 +19,5 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   setProjectName: (name) => set({ projectName: name }),
   setAssessmentDate: (date) => set({ assessmentDate: date }),
   setPillarRatings: (ratings) => set({ pillarRatings: ratings }),
+  resetPillarRatings: () => set({ pillarRatings: {} }),
 }));

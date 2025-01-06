@@ -92,7 +92,8 @@ export const Dashboard = () => {
     assessmentDate, 
     setProjectName, 
     setAssessmentDate,
-    setPillarRatings 
+    setPillarRatings,
+    resetPillarRatings 
   } = useDashboardStore();
 
   // Initialize state from URL parameters
@@ -109,11 +110,17 @@ export const Dashboard = () => {
     }
   }, []);
 
-  // Load existing ratings from Supabase
+  // Reset ratings when project name changes
   useEffect(() => {
-    const loadRatings = async () => {
-      if (!projectName || !assessmentDate) return;
+    console.log('Project name changed to:', projectName);
+    if (!projectName) {
+      console.log('Resetting all ratings due to empty project name');
+      resetPillarRatings();
+      return;
+    }
 
+    // Load ratings for the new project
+    const loadRatings = async () => {
       try {
         console.log('Loading ratings for:', projectName, assessmentDate);
         const { data: ratings, error } = await supabase
@@ -144,6 +151,9 @@ export const Dashboard = () => {
 
           console.log('Setting pillar ratings:', pillarRatingsMap);
           setPillarRatings(pillarRatingsMap);
+        } else {
+          console.log('No ratings found, resetting to default values');
+          resetPillarRatings();
         }
       } catch (error) {
         console.error("Error loading ratings:", error);
