@@ -127,7 +127,7 @@ const CollaborationAspects = () => {
             practice_name: `Collaboration:${aspect.name}`,
             rating: aspect.rating
           }, {
-            onConflict: ['project_name', 'assessment_date', 'pillar_title', 'practice_name']
+            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
           });
 
         if (aspectError) {
@@ -149,7 +149,7 @@ const CollaborationAspects = () => {
           practice_name: 'Collaboration',
           rating: overallRating
         }, {
-          onConflict: ['project_name', 'assessment_date', 'pillar_title', 'practice_name']
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (error) {
