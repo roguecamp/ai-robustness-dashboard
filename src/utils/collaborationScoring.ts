@@ -1,8 +1,6 @@
 import type { CollaborationAspect } from "@/types/collaboration";
 
 export const calculateScore = (aspects: CollaborationAspect[]): number => {
-  console.log("Calculating collaboration score for aspects:", aspects);
-  
   return aspects.reduce((sum, aspect) => {
     switch (aspect.rating) {
       case "Largely in Place":
@@ -20,11 +18,7 @@ export const calculateOverallRating = (aspects: CollaborationAspect[]): string =
   const totalScore = calculateScore(aspects);
   console.log("Total collaboration score:", totalScore);
   
-  if (totalScore >= 8) {
-    return "Largely in Place";
-  } else if (totalScore >= 5) {
-    return "Somewhat in Place";
-  } else {
-    return "Not in Place";
-  }
+  if (totalScore >= 8) return "Largely in Place";
+  if (totalScore >= 5) return "Somewhat in Place";
+  return "Not in Place";
 };
