@@ -105,7 +105,6 @@ const ModelDevelopmentAspects = () => {
       if (error) throw error;
       
       setAspects(updatedAspects);
-      toast.success(`Updated ${aspects[index].name} rating`);
     } catch (error) {
       console.error("Error saving rating:", error);
       toast.error("Failed to save rating");
