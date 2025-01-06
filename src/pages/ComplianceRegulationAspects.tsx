@@ -75,7 +75,6 @@ const ComplianceRegulationAspects = () => {
               aspect => aspect.name === rating.practice_name
             );
             if (aspectIndex !== -1 && rating.rating) {
-              // Ensure the rating is one of the valid RatingLevel values
               const typedRating = rating.rating as RatingLevel;
               savedAspects[aspectIndex].rating = typedRating;
             }
@@ -156,24 +155,19 @@ const ComplianceRegulationAspects = () => {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container max-w-3xl mx-auto py-8 px-4">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Compliance and Regulation Aspects</h1>
-          <div className="space-x-4">
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/?project=${projectName}&date=${assessmentDate}`)}
-            >
-              Back to Dashboard
-            </Button>
-            <Button onClick={handleSaveOverallRating}>
-              Save Overall Rating
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/?project=${projectName}&date=${assessmentDate}`)}
+          >
+            Back to Dashboard
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
           {aspects.map((aspect, index) => (
             <AspectCard
               key={aspect.name}
@@ -181,6 +175,15 @@ const ComplianceRegulationAspects = () => {
               onClick={() => handleAspectClick(index)}
             />
           ))}
+        </div>
+
+        <div className="pt-6">
+          <Button 
+            className="w-full"
+            onClick={handleSaveOverallRating}
+          >
+            Save Overall Rating
+          </Button>
         </div>
       </div>
     </div>
