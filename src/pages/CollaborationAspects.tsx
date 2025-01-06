@@ -115,37 +115,37 @@ const CollaborationAspects = () => {
     }
 
     try {
-      // First, save individual aspect ratings
+      // Save individual aspect ratings sequentially
       for (const aspect of aspects) {
         const { error: aspectError } = await supabase
           .from('ratings')
-          .upsert({
+          .insert({
             project_name: projectName,
             assessment_date: assessmentDate,
             pillar_title: 'People',
             practice_name: `Collaboration:${aspect.name}`,
             rating: aspect.rating
-          }, {
-            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-          });
+          })
+          .onConflict(['project_name', 'assessment_date', 'pillar_title', 'practice_name'])
+          .merge();
 
         if (aspectError) throw aspectError;
       }
 
-      // Then save the overall collaboration rating
+      // Save the overall collaboration rating
       const overallRating = calculateOverallRating(aspects);
       
       const { error } = await supabase
         .from('ratings')
-        .upsert({
+        .insert({
           project_name: projectName,
           assessment_date: assessmentDate,
           pillar_title: 'People',
           practice_name: 'Collaboration',
           rating: overallRating
-        }, {
-          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-        });
+        })
+        .onConflict(['project_name', 'assessment_date', 'pillar_title', 'practice_name'])
+        .merge();
 
       if (error) throw error;
       
