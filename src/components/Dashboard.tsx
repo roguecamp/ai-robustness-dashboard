@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PillarCard } from "./PillarCard";
 import type { Pillar } from "@/types/ratings";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { Button } from "./ui/button";
 import { ProjectInfo } from "./dashboard/ProjectInfo";
 import { RatingKey } from "./dashboard/RatingKey";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const pillars: Pillar[] = [
   {
@@ -79,9 +80,20 @@ const pillars: Pillar[] = [
 ];
 
 export const Dashboard = () => {
-  const [projectName, setProjectName] = useState("");
-  const [assessmentDate, setAssessmentDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const [projectName, setProjectName] = useState(queryParams.get('project') || "");
+  const [assessmentDate, setAssessmentDate] = useState(queryParams.get('date') || format(new Date(), "yyyy-MM-dd"));
   const [pillarRatings, setPillarRatings] = useState<Record<string, { name: string; rating: string | null }[]>>({});
+
+  // Update URL when project name or date changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (projectName) params.set('project', projectName);
+    if (assessmentDate) params.set('date', assessmentDate);
+    navigate(`?${params.toString()}`, { replace: true });
+  }, [projectName, assessmentDate, navigate]);
 
   const handleUpdateRatings = (pillarTitle: string, practices: { name: string; rating: string | null }[]) => {
     setPillarRatings(prev => ({
@@ -99,12 +111,14 @@ export const Dashboard = () => {
           const promise = new Promise(async (resolve, reject) => {
             const { data, error } = await supabase
               .from("ratings")
-              .insert({
+              .upsert({
                 project_name: projectName,
                 assessment_date: assessmentDate,
                 pillar_title: pillarTitle,
                 practice_name: practice.name,
                 rating: practice.rating
+              }, {
+                onConflict: 'project_name,assessment_date,pillar_title,practice_name'
               })
               .select();
 
