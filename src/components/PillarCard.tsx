@@ -69,6 +69,11 @@ export const PillarCard = ({
         navigate(`/data-privacy-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       }
+    } else if (title === "Legal") {
+      if (practice.name === "Intellectual Property") {
+        navigate(`/intellectual-property-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      }
     }
 
     const ratings: RatingLevel[] = [

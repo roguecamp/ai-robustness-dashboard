@@ -13,6 +13,7 @@ import InnovationAspects from "./pages/InnovationAspects";
 import DataAcquisitionAspects from "./pages/DataAcquisitionAspects";
 import DataGovernanceAspects from "./pages/DataGovernanceAspects";
 import DataPrivacyAspects from "./pages/DataPrivacyAspects";
+import IntellectualPropertyAspects from "./pages/IntellectualPropertyAspects";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/data-acquisition-aspects" element={<DataAcquisitionAspects />} />
           <Route path="/data-governance-aspects" element={<DataGovernanceAspects />} />
           <Route path="/data-privacy-aspects" element={<DataPrivacyAspects />} />
+          <Route path="/intellectual-property-aspects" element={<IntellectualPropertyAspects />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
