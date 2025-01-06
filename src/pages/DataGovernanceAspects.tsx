@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AspectCard } from "@/components/data-governance/AspectCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +53,7 @@ const isValidRating = (rating: string | null): rating is "Largely in Place" | "S
 
 export default function DataGovernanceAspects() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [aspects, setAspects] = useState<DataGovernanceAspect[]>(initialAspects);
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
@@ -164,11 +165,14 @@ export default function DataGovernanceAspects() {
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Data Governance Aspects</h1>
-          <p className="text-gray-600">
-            Rate each aspect of Data Governance by clicking on the cards. Click multiple times to cycle through ratings.
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">Data Governance Aspects</h1>
+            <p className="text-gray-600">
+              Rate each aspect of Data Governance by clicking on the cards. Click multiple times to cycle through ratings.
+            </p>
+          </div>
+          <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
         </div>
 
         <div className="grid gap-4">
