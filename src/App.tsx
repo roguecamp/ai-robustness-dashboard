@@ -17,6 +17,7 @@ import IntellectualPropertyAspects from "./pages/IntellectualPropertyAspects";
 import EthicalConsiderationsAspects from "./pages/EthicalConsiderationsAspects";
 import ComplianceRegulationAspects from "./pages/ComplianceRegulationAspects";
 import InfrastructureAspects from "./pages/InfrastructureAspects";
+import ModelDevelopmentAspects from "./pages/ModelDevelopmentAspects";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/ethical-considerations-aspects" element={<EthicalConsiderationsAspects />} />
           <Route path="/compliance-regulation-aspects" element={<ComplianceRegulationAspects />} />
           <Route path="/infrastructure-aspects" element={<InfrastructureAspects />} />
+          <Route path="/model-development-aspects" element={<ModelDevelopmentAspects />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
