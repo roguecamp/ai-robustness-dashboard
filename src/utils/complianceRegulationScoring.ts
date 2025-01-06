@@ -1,23 +1,21 @@
-import { ComplianceRegulationAspect } from "@/types/compliance-regulation";
-import { RatingLevel } from "@/types/ratings";
+import type { ComplianceRegulationAspect } from "@/types/compliance-regulation";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateOverallRating = (aspects: ComplianceRegulationAspect[]): RatingLevel | null => {
-  const validRatings = aspects.filter(aspect => aspect.rating !== null);
-  if (validRatings.length === 0) return null;
-
+export const calculateOverallRating = (aspects: ComplianceRegulationAspect[]): RatingLevel => {
   const ratingScores = {
-    "Largely in Place": 3,
-    "Somewhat in Place": 2,
-    "Not in Place": 1
+    "Largely in Place": 2,
+    "Somewhat in Place": 1,
+    "Not in Place": 0
   };
 
-  const totalScore = validRatings.reduce((sum, aspect) => 
-    sum + (aspect.rating ? ratingScores[aspect.rating] : 0), 0
-  );
-  
-  const averageScore = totalScore / validRatings.length;
+  const totalScore = aspects.reduce((sum, aspect) => {
+    return sum + (aspect.rating ? ratingScores[aspect.rating] : 0);
+  }, 0);
 
-  if (averageScore >= 2.5) return "Largely in Place";
-  if (averageScore >= 1.5) return "Somewhat in Place";
+  const maxScore = aspects.length * 2;
+  const percentage = (totalScore / maxScore) * 100;
+
+  if (percentage >= 70) return "Largely in Place";
+  if (percentage >= 30) return "Somewhat in Place";
   return "Not in Place";
 };

@@ -1,14 +1,17 @@
-import { InfrastructureAspect } from "@/types/infrastructure";
-import { RatingLevel } from "@/types/ratings";
+import type { InfrastructureAspect } from "@/types/infrastructure";
+import type { RatingLevel } from "@/types/ratings";
 
 export const calculateOverallRating = (aspects: InfrastructureAspect[]): RatingLevel => {
   const ratingScores = {
     "Largely in Place": 2,
     "Somewhat in Place": 1,
-    "Not in Place": 0,
+    "Not in Place": 0
   };
 
-  const totalScore = aspects.reduce((sum, aspect) => sum + ratingScores[aspect.rating], 0);
+  const totalScore = aspects.reduce((sum, aspect) => {
+    return sum + (aspect.rating ? ratingScores[aspect.rating] : 0);
+  }, 0);
+
   const maxScore = aspects.length * 2;
   const percentage = (totalScore / maxScore) * 100;
 

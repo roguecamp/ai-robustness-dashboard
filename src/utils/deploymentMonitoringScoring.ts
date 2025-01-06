@@ -1,7 +1,7 @@
-import { RatingLevel } from "@/types/ratings";
-import { DeploymentMonitoringAspect } from "@/types/deployment-monitoring";
+import type { DeploymentMonitoringAspect } from "@/types/deployment-monitoring";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateDeploymentMonitoringRating = (aspects: DeploymentMonitoringAspect[]): RatingLevel => {
+export const calculateOverallRating = (aspects: DeploymentMonitoringAspect[]): RatingLevel => {
   const ratingScores = {
     "Largely in Place": 2,
     "Somewhat in Place": 1,

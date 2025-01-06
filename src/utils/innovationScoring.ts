@@ -1,6 +1,7 @@
 import type { InnovationAspect } from "@/types/innovation";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateOverallRating = (aspects: InnovationAspect[]) => {
+export const calculateOverallRating = (aspects: InnovationAspect[]): RatingLevel => {
   const ratingScores = {
     "Largely in Place": 2,
     "Somewhat in Place": 1,

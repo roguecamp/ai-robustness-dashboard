@@ -1,6 +1,7 @@
 import type { ScalabilityAspect } from "@/types/scalability";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateOverallRating = (aspects: ScalabilityAspect[]) => {
+export const calculateOverallRating = (aspects: ScalabilityAspect[]): RatingLevel => {
   const ratingScores = {
     "Largely in Place": 2,
     "Somewhat in Place": 1,

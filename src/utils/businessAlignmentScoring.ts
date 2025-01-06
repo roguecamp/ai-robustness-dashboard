@@ -1,10 +1,11 @@
 import type { BusinessAlignmentAspect } from "@/types/business-alignment";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateOverallRating = (aspects: BusinessAlignmentAspect[]) => {
+export const calculateOverallRating = (aspects: BusinessAlignmentAspect[]): RatingLevel => {
   const ratingScores = {
     "Largely in Place": 2,
     "Somewhat in Place": 1,
-    "Not in Place": 0,
+    "Not in Place": 0
   };
 
   const totalScore = aspects.reduce((sum, aspect) => {

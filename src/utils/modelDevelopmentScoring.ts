@@ -1,6 +1,7 @@
-import { ModelDevelopmentAspect } from "@/types/model-development";
+import type { ModelDevelopmentAspect } from "@/types/model-development";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateModelDevelopmentRating = (aspects: ModelDevelopmentAspect[]) => {
+export const calculateOverallRating = (aspects: ModelDevelopmentAspect[]): RatingLevel => {
   const ratingScores = {
     "Largely in Place": 2,
     "Somewhat in Place": 1,

@@ -1,26 +1,21 @@
 import type { EthicalConsiderationsAspect } from "@/types/ethical-considerations";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateOverallRating = (aspects: EthicalConsiderationsAspect[]) => {
-  const validRatings = aspects.filter(aspect => aspect.rating !== null);
-  if (validRatings.length === 0) return null;
-
-  const ratingCounts = {
-    "Largely in Place": 0,
-    "Somewhat in Place": 0,
+export const calculateOverallRating = (aspects: EthicalConsiderationsAspect[]): RatingLevel => {
+  const ratingScores = {
+    "Largely in Place": 2,
+    "Somewhat in Place": 1,
     "Not in Place": 0
   };
 
-  validRatings.forEach(aspect => {
-    if (aspect.rating) ratingCounts[aspect.rating]++;
-  });
+  const totalScore = aspects.reduce((sum, aspect) => {
+    return sum + (aspect.rating ? ratingScores[aspect.rating] : 0);
+  }, 0);
 
-  const totalRatings = validRatings.length;
-  
-  if (ratingCounts["Largely in Place"] / totalRatings >= 0.7) {
-    return "Largely in Place";
-  } else if (ratingCounts["Not in Place"] / totalRatings >= 0.3) {
-    return "Not in Place";
-  } else {
-    return "Somewhat in Place";
-  }
+  const maxScore = aspects.length * 2;
+  const percentage = (totalScore / maxScore) * 100;
+
+  if (percentage >= 70) return "Largely in Place";
+  if (percentage >= 30) return "Somewhat in Place";
+  return "Not in Place";
 };

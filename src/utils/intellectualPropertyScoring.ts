@@ -1,14 +1,17 @@
-import { IntellectualPropertyAspect } from "@/types/intellectual-property";
-import { RatingLevel } from "@/types/ratings";
+import type { IntellectualPropertyAspect } from "@/types/intellectual-property";
+import type { RatingLevel } from "@/types/ratings";
 
 export const calculateOverallRating = (aspects: IntellectualPropertyAspect[]): RatingLevel => {
   const ratingScores = {
     "Largely in Place": 2,
     "Somewhat in Place": 1,
-    "Not in Place": 0,
+    "Not in Place": 0
   };
 
-  const totalScore = aspects.reduce((sum, aspect) => sum + ratingScores[aspect.rating], 0);
+  const totalScore = aspects.reduce((sum, aspect) => {
+    return sum + (aspect.rating ? ratingScores[aspect.rating] : 0);
+  }, 0);
+
   const maxScore = aspects.length * 2;
   const percentage = (totalScore / maxScore) * 100;
 

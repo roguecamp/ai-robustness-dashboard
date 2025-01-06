@@ -1,25 +1,21 @@
 import type { ChangeManagementAspect } from "@/types/change-management";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateScore = (aspects: ChangeManagementAspect[]): number => {
-  console.log("Calculating change management score for aspects:", aspects);
-  return aspects.reduce((sum, aspect) => {
-    switch (aspect.rating) {
-      case "Largely in Place":
-        return sum + 2;
-      case "Somewhat in Place":
-        return sum + 1;
-      case "Not in Place":
-      default:
-        return sum + 0;
-    }
+export const calculateOverallRating = (aspects: ChangeManagementAspect[]): RatingLevel => {
+  const ratingScores = {
+    "Largely in Place": 2,
+    "Somewhat in Place": 1,
+    "Not in Place": 0
+  };
+
+  const totalScore = aspects.reduce((sum, aspect) => {
+    return sum + (aspect.rating ? ratingScores[aspect.rating] : 0);
   }, 0);
-};
 
-export const calculateOverallRating = (aspects: ChangeManagementAspect[]): string => {
-  const totalScore = calculateScore(aspects);
-  console.log("Total change management score:", totalScore);
-  
-  if (totalScore >= 8) return "Largely in Place";
-  if (totalScore >= 5) return "Somewhat in Place";
+  const maxScore = aspects.length * 2;
+  const percentage = (totalScore / maxScore) * 100;
+
+  if (percentage >= 70) return "Largely in Place";
+  if (percentage >= 30) return "Somewhat in Place";
   return "Not in Place";
 };
