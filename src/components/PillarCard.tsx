@@ -58,6 +58,11 @@ export const PillarCard = ({
         navigate(`/innovation-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       }
+    } else if (title === "Data") {
+      if (practice.name === "Data Acquisition and Quality") {
+        navigate(`/data-acquisition-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      }
     }
 
     const ratings: RatingLevel[] = [
