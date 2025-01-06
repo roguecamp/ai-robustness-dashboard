@@ -7,29 +7,37 @@ export const SaveRatingsButton = () => {
   const { projectName, assessmentDate, pillarRatings } = useDashboardStore();
 
   const handleSaveAllRatings = async () => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     try {
-      const promises = Object.entries(pillarRatings).flatMap(([pillarTitle, practices]) =>
-        practices.map(practice => 
-          supabase
-            .from("ratings")
-            .upsert({
-              project_name: projectName,
-              assessment_date: assessmentDate,
-              pillar_title: pillarTitle,
-              practice_name: practice.name,
-              rating: practice.rating
-            }, {
-              onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-            })
-            .select()
-            .then(result => {
-              if (result.error) throw result.error;
-              return result;
-            })
-        )
+      console.log('Saving ratings for:', projectName, assessmentDate);
+      console.log('Ratings to save:', pillarRatings);
+
+      const ratingsToUpsert = Object.entries(pillarRatings).flatMap(([pillarTitle, practices]) =>
+        practices.map(practice => ({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: pillarTitle,
+          practice_name: practice.name,
+          rating: practice.rating
+        }))
       );
+
+      console.log('Preparing to upsert ratings:', ratingsToUpsert);
+
+      const { error } = await supabase
+        .from("ratings")
+        .upsert(ratingsToUpsert, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name',
+          ignoreDuplicates: false
+        });
+
+      if (error) throw error;
       
-      await Promise.all(promises);
+      console.log('Successfully saved ratings');
       toast.success("Successfully saved all ratings");
     } catch (error) {
       console.error("Error saving ratings:", error);
