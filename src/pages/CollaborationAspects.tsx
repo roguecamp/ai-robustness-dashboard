@@ -115,8 +115,9 @@ const CollaborationAspects = () => {
     }
 
     try {
-      // Save individual aspect ratings sequentially
+      // Save individual aspect ratings
       for (const aspect of aspects) {
+        console.log(`Saving aspect: ${aspect.name} with rating: ${aspect.rating}`);
         const { error: aspectError } = await supabase
           .from('ratings')
           .upsert({
@@ -125,13 +126,19 @@ const CollaborationAspects = () => {
             pillar_title: 'People',
             practice_name: `Collaboration:${aspect.name}`,
             rating: aspect.rating
+          }, {
+            onConflict: ['project_name', 'assessment_date', 'pillar_title', 'practice_name']
           });
 
-        if (aspectError) throw aspectError;
+        if (aspectError) {
+          console.error(`Error saving aspect ${aspect.name}:`, aspectError);
+          throw aspectError;
+        }
       }
 
-      // Save the overall collaboration rating
+      // Calculate and save the overall collaboration rating
       const overallRating = calculateOverallRating(aspects);
+      console.log('Saving overall rating:', overallRating);
       
       const { error } = await supabase
         .from('ratings')
@@ -141,9 +148,14 @@ const CollaborationAspects = () => {
           pillar_title: 'People',
           practice_name: 'Collaboration',
           rating: overallRating
+        }, {
+          onConflict: ['project_name', 'assessment_date', 'pillar_title', 'practice_name']
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving overall rating:', error);
+        throw error;
+      }
       
       toast.success("Collaboration aspects saved successfully");
       navigate('/');
