@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ComplianceRegulationAspect } from "@/types/compliance-regulation";
 import { calculateOverallRating } from "@/utils/complianceRegulationScoring";
 import { AspectCard } from "@/components/compliance-regulation/AspectCard";
+import { RatingKey } from "@/components/shared/RatingKey";
 import { RatingLevel } from "@/types/ratings";
 
 const initialAspects: ComplianceRegulationAspect[] = [
@@ -155,19 +156,22 @@ const ComplianceRegulationAspects = () => {
   };
 
   return (
-    <div className="container max-w-3xl mx-auto py-8 px-4">
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Compliance and Regulation Aspects</h1>
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/?project=${projectName}&date=${assessmentDate}`)}
-          >
-            Back to Dashboard
-          </Button>
+    <div className="container mx-auto py-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">Compliance and Regulation Aspects</h1>
+            <p className="text-gray-600">
+              Rate each aspect of Compliance and Regulation by clicking on the cards. Click multiple times to cycle through ratings.
+            </p>
+          </div>
+          <div className="flex gap-4 items-start">
+            <RatingKey />
+            <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
+          </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="grid gap-4">
           {aspects.map((aspect, index) => (
             <AspectCard
               key={aspect.name}
@@ -177,10 +181,8 @@ const ComplianceRegulationAspects = () => {
           ))}
         </div>
 
-        <div className="flex justify-end pt-6">
-          <Button onClick={handleSaveOverallRating}>
-            Save Overall Rating
-          </Button>
+        <div className="flex justify-end">
+          <Button onClick={handleSaveOverallRating}>Save Overall Rating</Button>
         </div>
       </div>
     </div>
