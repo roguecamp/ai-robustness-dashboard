@@ -21,6 +21,7 @@ const ModelDevelopmentAspects = () => {
       if (!projectName || !assessmentDate) return;
 
       try {
+        console.log('Loading Model Development aspect ratings for:', projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from('ratings')
           .select('practice_name, rating')
@@ -32,6 +33,7 @@ const ModelDevelopmentAspects = () => {
         if (error) throw error;
 
         if (ratings && ratings.length > 0) {
+          console.log('Loaded Model Development ratings:', ratings);
           const updatedAspects = aspects.map(aspect => {
             const matchingRating = ratings.find(r => r.practice_name === `ModelDevelopment:${aspect.name}`);
             return {
@@ -63,7 +65,12 @@ const ModelDevelopmentAspects = () => {
     }
   };
 
-  const handleRatingChange = (index: number) => {
+  const handleRatingChange = async (index: number) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     const ratings: ModelDevelopmentAspect["rating"][] = [
       "Largely in Place",
       "Somewhat in Place",
@@ -74,13 +81,35 @@ const ModelDevelopmentAspects = () => {
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
     const nextIndex = (currentIndex + 1) % ratings.length;
+    const newRating = ratings[nextIndex];
     
     updatedAspects[index] = {
       ...aspects[index],
-      rating: ratings[nextIndex]
+      rating: newRating
     };
-    
-    setAspects(updatedAspects);
+
+    try {
+      console.log(`Saving individual rating for ${aspects[index].name}:`, newRating);
+      const { error } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Solution',
+          practice_name: `ModelDevelopment:${aspects[index].name}`,
+          rating: newRating
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+      
+      setAspects(updatedAspects);
+      toast.success(`Updated ${aspects[index].name} rating`);
+    } catch (error) {
+      console.error("Error saving rating:", error);
+      toast.error("Failed to save rating");
+    }
   };
 
   const handleSave = async () => {
@@ -90,25 +119,9 @@ const ModelDevelopmentAspects = () => {
     }
 
     try {
-      // Save individual aspect ratings
-      for (const aspect of aspects) {
-        const { error: aspectError } = await supabase
-          .from('ratings')
-          .upsert({
-            project_name: projectName,
-            assessment_date: assessmentDate,
-            pillar_title: 'Solution',
-            practice_name: `ModelDevelopment:${aspect.name}`,
-            rating: aspect.rating
-          }, {
-            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-          });
-
-        if (aspectError) throw aspectError;
-      }
-
       // Calculate and save the overall rating
       const overallRating = calculateOverallRating(aspects);
+      console.log('Saving overall Model Development rating:', overallRating);
       
       const { error } = await supabase
         .from('ratings')
@@ -127,8 +140,8 @@ const ModelDevelopmentAspects = () => {
       toast.success("Model development aspects saved successfully");
       navigate('/');
     } catch (error) {
-      console.error("Error saving ratings:", error);
-      toast.error("Failed to save ratings");
+      console.error("Error saving overall rating:", error);
+      toast.error("Failed to save overall rating");
     }
   };
 
