@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,10 +48,9 @@ const infrastructureAspects: InfrastructureAspect[] = [
 
 const InfrastructureAspects = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const projectName = queryParams.get('project');
-  const assessmentDate = queryParams.get('date');
+  const [searchParams] = useSearchParams();
+  const projectName = searchParams.get("project");
+  const assessmentDate = searchParams.get("date");
   
   const [aspects, setAspects] = useState<InfrastructureAspect[]>(infrastructureAspects);
 
@@ -139,10 +138,10 @@ const InfrastructureAspects = () => {
         </div>
 
         <InfrastructureAspectList
-          projectName={projectName}
-          assessmentDate={assessmentDate}
           aspects={aspects}
           onAspectClick={handleAspectClick}
+          projectName={projectName}
+          assessmentDate={assessmentDate}
         />
 
         <div className="flex justify-end space-x-4">
