@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { RatingKey } from "@/components/shared/RatingKey";
 
 interface DataGovernanceHeaderProps {
   onBackClick: () => void;
@@ -14,10 +13,7 @@ export const DataGovernanceHeader = ({ onBackClick }: DataGovernanceHeaderProps)
           Rate each aspect of Data Governance by clicking on the cards. Click multiple times to cycle through ratings.
         </p>
       </div>
-      <div className="flex gap-4 items-start">
-        <RatingKey />
-        <Button onClick={onBackClick}>Back to Dashboard</Button>
-      </div>
+      <Button onClick={onBackClick}>Back to Dashboard</Button>
     </div>
   );
 };
