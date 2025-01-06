@@ -8,6 +8,7 @@ import TrainingAspects from "./pages/TrainingAspects";
 import CollaborationAspects from "./pages/CollaborationAspects";
 import ChangeManagementAspects from "./pages/ChangeManagementAspects";
 import BusinessAlignmentAspects from "./pages/BusinessAlignmentAspects";
+import ScalabilityAspects from "./pages/ScalabilityAspects";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/collaboration-aspects" element={<CollaborationAspects />} />
           <Route path="/change-management-aspects" element={<ChangeManagementAspects />} />
           <Route path="/business-alignment-aspects" element={<BusinessAlignmentAspects />} />
+          <Route path="/scalability-aspects" element={<ScalabilityAspects />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

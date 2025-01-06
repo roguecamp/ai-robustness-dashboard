@@ -47,9 +47,14 @@ export const PillarCard = ({
         navigate(`/change-management-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       }
-    } else if (title === "Strategy" && practice.name === "Business Alignment") {
-      navigate(`/business-alignment-aspects?project=${projectName}&date=${assessmentDate}`);
-      return;
+    } else if (title === "Strategy") {
+      if (practice.name === "Business Alignment") {
+        navigate(`/business-alignment-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      } else if (practice.name === "Scalability and Adoption") {
+        navigate(`/scalability-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
+      }
     }
 
     const ratings: RatingLevel[] = [
@@ -106,7 +111,7 @@ export const PillarCard = ({
         
         <div className={cn(
           "space-y-4",
-          isSecurityPillar && "grid grid-cols-5 gap-4 space-y-0"
+          title === "Security" && "grid grid-cols-5 gap-4 space-y-0"
         )}>
           {practices.map((practice, index) => (
             <div key={practice.name} className="space-y-2">
