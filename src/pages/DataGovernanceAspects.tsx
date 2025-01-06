@@ -63,6 +63,7 @@ export default function DataGovernanceAspects() {
       if (!projectName || !assessmentDate) return;
 
       try {
+        console.log("Loading ratings for:", projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from("ratings")
           .select("*")
@@ -74,6 +75,7 @@ export default function DataGovernanceAspects() {
         if (error) throw error;
 
         if (ratings && ratings.length > 0) {
+          console.log("Loaded ratings:", ratings);
           const updatedAspects = aspects.map(aspect => {
             const rating = ratings.find(r => r.practice_name === aspect.name);
             return {
@@ -118,44 +120,48 @@ export default function DataGovernanceAspects() {
     }
 
     try {
-      // Delete existing ratings for this practice
-      await supabase
-        .from("ratings")
-        .delete()
-        .eq("project_name", projectName)
-        .eq("assessment_date", assessmentDate)
-        .eq("pillar_title", "Data")
-        .eq("practice_name", "Data Governance");
-
-      // Insert new ratings
-      const ratingsToInsert = aspects.map(aspect => ({
+      console.log("Saving ratings for aspects:", aspects);
+      
+      // Prepare the ratings for upsert
+      const ratingsToUpsert = aspects.map(aspect => ({
         project_name: projectName,
         assessment_date: assessmentDate,
         pillar_title: "Data",
         practice_name: aspect.name,
-        rating: aspect.rating,
+        rating: aspect.rating
       }));
 
-      const { error } = await supabase.from("ratings").insert(ratingsToInsert);
+      // Use upsert instead of insert
+      const { error: aspectsError } = await supabase
+        .from("ratings")
+        .upsert(ratingsToUpsert, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name',
+          ignoreDuplicates: false
+        });
 
-      if (error) throw error;
+      if (aspectsError) throw aspectsError;
 
+      // Calculate and save the overall rating
       const overallRating = calculateOverallRating(aspects);
+      console.log("Saving overall rating:", overallRating);
       
-      // Update the overall rating for Data Governance
-      const { error: updateError } = await supabase
+      const { error: overallError } = await supabase
         .from("ratings")
         .upsert({
           project_name: projectName,
           assessment_date: assessmentDate,
           pillar_title: "Data",
           practice_name: "Data Governance",
-          rating: overallRating,
+          rating: overallRating
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name',
+          ignoreDuplicates: false
         });
 
-      if (updateError) throw updateError;
-
+      if (overallError) throw overallError;
+      
       toast.success("Ratings saved successfully");
+      navigate('/');
     } catch (error) {
       console.error("Error saving ratings:", error);
       toast.error("Failed to save ratings");
