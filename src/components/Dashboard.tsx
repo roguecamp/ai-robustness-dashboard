@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
-import { PillarCard } from "./PillarCard";
-import type { Pillar } from "@/types/ratings";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { format } from "date-fns";
+import { useEffect } from "react";
+import { Toaster } from "sonner";
 import { Button } from "./ui/button";
 import { ProjectInfo } from "./dashboard/ProjectInfo";
 import { RatingKey } from "./dashboard/RatingKey";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { PillarGrid } from "./dashboard/PillarGrid";
+import { useDashboardStore } from "./dashboard/DashboardState";
+import { format } from "date-fns";
 
 const pillars: Pillar[] = [
   {
@@ -80,27 +81,30 @@ const pillars: Pillar[] = [
 ];
 
 export const Dashboard = () => {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [projectName, setProjectName] = useState(searchParams.get('project') || "");
-  const [assessmentDate, setAssessmentDate] = useState(searchParams.get('date') || format(new Date(), "yyyy-MM-dd"));
-  const [pillarRatings, setPillarRatings] = useState<Record<string, { name: string; rating: string | null }[]>>({});
+  const { 
+    projectName, 
+    assessmentDate, 
+    pillarRatings,
+    setProjectName, 
+    setAssessmentDate 
+  } = useDashboardStore();
 
+  // Initialize state from URL parameters
   useEffect(() => {
-    // Update state from URL parameters when component mounts or URL changes
     const projectParam = searchParams.get('project');
     const dateParam = searchParams.get('date');
     
-    if (projectParam && projectParam !== projectName) {
+    if (projectParam) {
       setProjectName(projectParam);
     }
     
-    if (dateParam && dateParam !== assessmentDate) {
+    if (dateParam) {
       setAssessmentDate(dateParam);
     }
-  }, [searchParams]);
+  }, []);
 
-  // Update URL when project name or date changes
+  // Update URL when state changes
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
     if (projectName) {
@@ -113,13 +117,6 @@ export const Dashboard = () => {
     }
     setSearchParams(params);
   }, [projectName, assessmentDate]);
-
-  const handleUpdateRatings = (pillarTitle: string, practices: { name: string; rating: string | null }[]) => {
-    setPillarRatings(prev => ({
-      ...prev,
-      [pillarTitle]: practices
-    }));
-  };
 
   const handleSaveAllRatings = async () => {
     try {
@@ -176,36 +173,7 @@ export const Dashboard = () => {
           <RatingKey />
         </div>
 
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            {pillars.slice(0, 5).map((pillar, index) => (
-              <div
-                key={pillar.title}
-                className="animate-scale-in"
-                style={{
-                  animationDelay: `${index * 100}ms`,
-                }}
-              >
-                <PillarCard 
-                  {...pillar} 
-                  onUpdate={handleUpdateRatings}
-                  projectName={projectName}
-                  assessmentDate={assessmentDate}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 gap-6">
-            <div className="animate-scale-in" style={{ animationDelay: '500ms' }}>
-              <PillarCard 
-                {...pillars[5]} 
-                onUpdate={handleUpdateRatings}
-                projectName={projectName}
-                assessmentDate={assessmentDate}
-              />
-            </div>
-          </div>
-        </div>
+        <PillarGrid pillars={pillars} />
 
         <div className="flex justify-center pt-8">
           <Button 
