@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -57,6 +57,40 @@ const TrainingAspects = () => {
   const assessmentDate = queryParams.get('date');
   
   const [aspects, setAspects] = useState<TrainingAspect[]>(trainingAspects);
+
+  useEffect(() => {
+    const loadAspectRatings = async () => {
+      if (!projectName || !assessmentDate) return;
+
+      try {
+        const { data: ratings, error } = await supabase
+          .from('ratings')
+          .select('practice_name, rating')
+          .eq('project_name', projectName)
+          .eq('assessment_date', assessmentDate)
+          .eq('pillar_title', 'People')
+          .like('practice_name', 'Training:%');
+
+        if (error) throw error;
+
+        if (ratings && ratings.length > 0) {
+          const updatedAspects = aspects.map(aspect => {
+            const matchingRating = ratings.find(r => r.practice_name === `Training:${aspect.name}`);
+            return {
+              ...aspect,
+              rating: matchingRating?.rating as TrainingAspect["rating"] || null
+            };
+          });
+          setAspects(updatedAspects);
+        }
+      } catch (error) {
+        console.error("Error loading ratings:", error);
+        toast.error("Failed to load aspect ratings");
+      }
+    };
+
+    loadAspectRatings();
+  }, [projectName, assessmentDate]);
 
   const getRatingColor = (rating: TrainingAspect["rating"]) => {
     switch (rating) {
@@ -117,30 +151,54 @@ const TrainingAspects = () => {
     }
 
     try {
-      console.log('Saving training rating for:', projectName, assessmentDate);
+      // Save individual aspect ratings
+      for (const aspect of aspects) {
+        console.log(`Saving aspect: ${aspect.name} with rating: ${aspect.rating}`);
+        const { error: aspectError } = await supabase
+          .from('ratings')
+          .upsert({
+            project_name: projectName,
+            assessment_date: assessmentDate,
+            pillar_title: 'People',
+            practice_name: `Training:${aspect.name}`,
+            rating: aspect.rating
+          }, {
+            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+          });
+
+        if (aspectError) {
+          console.error(`Error saving aspect ${aspect.name}:`, aspectError);
+          throw aspectError;
+        }
+      }
+
+      // Calculate and save the overall training rating
       const overallRating = calculateOverallRating();
+      console.log('Saving overall training rating:', overallRating);
       
       const { error } = await supabase
-        .from("ratings")
+        .from('ratings')
         .upsert({
           project_name: projectName,
           assessment_date: assessmentDate,
-          pillar_title: "People",
-          practice_name: "Training and Upskilling",
+          pillar_title: 'People',
+          practice_name: 'Training and Upskilling',
           rating: overallRating
         }, {
-          onConflict: 'project_name,assessment_date,pillar_title,practice_name',
-          ignoreDuplicates: false
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving overall rating:', error);
+        throw error;
+      }
       
       console.log('Successfully saved training rating:', overallRating);
       toast.success("Training aspects saved successfully");
       navigate('/');
     } catch (error) {
-      console.error("Error saving rating:", error);
-      toast.error("Failed to save rating");
+      console.error("Error saving ratings:", error);
+      toast.error("Failed to save ratings");
     }
   };
 
