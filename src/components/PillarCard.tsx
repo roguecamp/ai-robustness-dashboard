@@ -76,6 +76,9 @@ export const PillarCard = ({
       } else if (practice.name === "Ethical Considerations") {
         navigate(`/ethical-considerations-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
+      } else if (practice.name === "Compliance and Regulation") {
+        navigate(`/compliance-regulation-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
       }
     }
 
