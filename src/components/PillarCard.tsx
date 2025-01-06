@@ -65,6 +65,9 @@ export const PillarCard = ({
       } else if (practice.name === "Data Governance") {
         navigate(`/data-governance-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
+      } else if (practice.name === "Data Privacy") {
+        navigate(`/data-privacy-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
       }
     }
 
