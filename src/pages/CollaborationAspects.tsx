@@ -1,14 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { CollaborationAspect } from "@/types/collaboration";
-import { calculateOverallRating } from "@/utils/collaborationScoring";
 import { AspectCard } from "@/components/collaboration/AspectCard";
-import { RatingKey } from "@/components/shared/RatingKey";
-import { RatingLevel } from "@/types/ratings";
 import { useCollaborationAspects } from "@/hooks/useCollaborationAspects";
+import { calculateOverallRating } from "@/utils/collaborationScoring";
 
 export default function CollaborationAspects() {
   const navigate = useNavigate();
@@ -80,10 +77,7 @@ export default function CollaborationAspects() {
               Rate each aspect of Collaboration by clicking on the cards. Click multiple times to cycle through ratings.
             </p>
           </div>
-          <div className="flex gap-4 items-start">
-            <RatingKey />
-            <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
-          </div>
+          <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
         </div>
 
         <div className="grid gap-4">
