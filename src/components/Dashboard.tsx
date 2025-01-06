@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { PillarGrid } from "./dashboard/PillarGrid";
 import { useDashboardStore } from "./dashboard/DashboardState";
 import { format } from "date-fns";
+import { Pillar, KeyPractice } from "@/types/ratings";
 
 const pillars: Pillar[] = [
   {
@@ -123,7 +124,7 @@ export const Dashboard = () => {
       const allPromises: Promise<any>[] = [];
       
       Object.entries(pillarRatings).forEach(([pillarTitle, practices]) => {
-        practices.forEach(async (practice) => {
+        (practices as KeyPractice[]).forEach(async (practice) => {
           const promise = new Promise(async (resolve, reject) => {
             const { data, error } = await supabase
               .from("ratings")

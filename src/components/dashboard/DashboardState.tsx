@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { format } from "date-fns";
+import { KeyPractice } from '@/types/ratings';
 
 interface DashboardState {
   projectName: string;
   assessmentDate: string;
-  pillarRatings: Record<string, { name: string; rating: string | null }[]>;
+  pillarRatings: Record<string, KeyPractice[]>;
   setProjectName: (name: string) => void;
   setAssessmentDate: (date: string) => void;
-  setPillarRatings: (pillarTitle: string, practices: { name: string; rating: string | null }[]) => void;
+  setPillarRatings: (pillarTitle: string, practices: KeyPractice[]) => void;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
