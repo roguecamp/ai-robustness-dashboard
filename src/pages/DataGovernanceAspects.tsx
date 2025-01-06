@@ -45,6 +45,12 @@ const initialAspects: DataGovernanceAspect[] = [
   },
 ];
 
+const isValidRating = (rating: string | null): rating is "Largely in Place" | "Somewhat in Place" | "Not in Place" => {
+  return rating === "Largely in Place" || 
+         rating === "Somewhat in Place" || 
+         rating === "Not in Place";
+};
+
 export default function DataGovernanceAspects() {
   const [searchParams] = useSearchParams();
   const [aspects, setAspects] = useState<DataGovernanceAspect[]>(initialAspects);
@@ -71,7 +77,7 @@ export default function DataGovernanceAspects() {
             const rating = ratings.find(r => r.practice_name === aspect.name);
             return {
               ...aspect,
-              rating: rating?.rating || null,
+              rating: isValidRating(rating?.rating) ? rating.rating : null,
             };
           });
           setAspects(updatedAspects);
