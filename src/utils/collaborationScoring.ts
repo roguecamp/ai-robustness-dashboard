@@ -1,25 +1,23 @@
 import type { CollaborationAspect } from "@/types/collaboration";
+import type { RatingLevel } from "@/types/ratings";
 
-export const calculateScore = (aspects: CollaborationAspect[]): number => {
-  console.log("Calculating collaboration score for aspects:", aspects);
-  return aspects.reduce((sum, aspect) => {
-    switch (aspect.rating) {
-      case "Largely in Place":
-        return sum + 2;
-      case "Somewhat in Place":
-        return sum + 1;
-      case "Not in Place":
-      default:
-        return sum + 0;
-    }
+export const calculateOverallRating = (aspects: CollaborationAspect[]): RatingLevel | null => {
+  const validRatings = aspects.filter(aspect => aspect.rating !== null);
+  if (validRatings.length === 0) return null;
+
+  const ratingScores = {
+    "Largely in Place": 3,
+    "Somewhat in Place": 2,
+    "Not in Place": 1
+  };
+
+  const totalScore = validRatings.reduce((sum, aspect) => {
+    return sum + (aspect.rating ? ratingScores[aspect.rating] : 0);
   }, 0);
-};
 
-export const calculateOverallRating = (aspects: CollaborationAspect[]): string => {
-  const totalScore = calculateScore(aspects);
-  console.log("Total collaboration score:", totalScore);
-  
-  if (totalScore >= 8) return "Largely in Place";
-  if (totalScore >= 5) return "Somewhat in Place";
+  const averageScore = totalScore / validRatings.length;
+
+  if (averageScore >= 2.5) return "Largely in Place";
+  if (averageScore >= 1.5) return "Somewhat in Place";
   return "Not in Place";
 };
