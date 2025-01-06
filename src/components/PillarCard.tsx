@@ -47,6 +47,9 @@ export const PillarCard = ({
         navigate(`/change-management-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
       }
+    } else if (title === "Strategy" && practice.name === "Business Alignment") {
+      navigate(`/business-alignment-aspects?project=${projectName}&date=${assessmentDate}`);
+      return;
     }
 
     const ratings: RatingLevel[] = [
