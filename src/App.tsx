@@ -11,6 +11,7 @@ import BusinessAlignmentAspects from "./pages/BusinessAlignmentAspects";
 import ScalabilityAspects from "./pages/ScalabilityAspects";
 import InnovationAspects from "./pages/InnovationAspects";
 import DataAcquisitionAspects from "./pages/DataAcquisitionAspects";
+import DataGovernanceAspects from "./pages/DataGovernanceAspects";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/scalability-aspects" element={<ScalabilityAspects />} />
           <Route path="/innovation-aspects" element={<InnovationAspects />} />
           <Route path="/data-acquisition-aspects" element={<DataAcquisitionAspects />} />
+          <Route path="/data-governance-aspects" element={<DataGovernanceAspects />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

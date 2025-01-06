@@ -62,6 +62,9 @@ export const PillarCard = ({
       if (practice.name === "Data Acquisition and Quality") {
         navigate(`/data-acquisition-aspects?project=${projectName}&date=${assessmentDate}`);
         return;
+      } else if (practice.name === "Data Governance") {
+        navigate(`/data-governance-aspects?project=${projectName}&date=${assessmentDate}`);
+        return;
       }
     }
 
