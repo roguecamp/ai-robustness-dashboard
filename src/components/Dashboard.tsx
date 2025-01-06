@@ -88,7 +88,8 @@ export const Dashboard = () => {
     assessmentDate, 
     pillarRatings,
     setProjectName, 
-    setAssessmentDate 
+    setAssessmentDate,
+    setPillarRatings 
   } = useDashboardStore();
 
   // Initialize state from URL parameters
@@ -104,6 +105,51 @@ export const Dashboard = () => {
       setAssessmentDate(dateParam);
     }
   }, []);
+
+  // Load existing ratings from Supabase
+  useEffect(() => {
+    const loadRatings = async () => {
+      if (!projectName || !assessmentDate) return;
+
+      try {
+        console.log('Loading ratings for:', projectName, assessmentDate);
+        const { data: ratings, error } = await supabase
+          .from("ratings")
+          .select("*")
+          .eq("project_name", projectName)
+          .eq("assessment_date", assessmentDate);
+
+        if (error) throw error;
+
+        if (ratings && ratings.length > 0) {
+          console.log('Loaded ratings:', ratings);
+          // Group ratings by pillar
+          const pillarRatingsMap: Record<string, KeyPractice[]> = {};
+          
+          pillars.forEach(pillar => {
+            const pillarRatings = pillar.keyPractices.map(practice => {
+              const rating = ratings.find(
+                r => r.pillar_title === pillar.title && r.practice_name === practice.name
+              );
+              return {
+                name: practice.name,
+                rating: rating?.rating || null
+              };
+            });
+            pillarRatingsMap[pillar.title] = pillarRatings;
+          });
+
+          console.log('Setting pillar ratings:', pillarRatingsMap);
+          setPillarRatings(pillarRatingsMap);
+        }
+      } catch (error) {
+        console.error("Error loading ratings:", error);
+        toast.error("Failed to load ratings");
+      }
+    };
+
+    loadRatings();
+  }, [projectName, assessmentDate]);
 
   // Update URL when state changes
   useEffect(() => {
