@@ -3,17 +3,18 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ComplianceRegulationAspect } from "@/types/compliance-regulation";
+import { AspectGrid } from "@/components/shared/AspectGrid";
 import { calculateOverallRating } from "@/utils/complianceRegulationScoring";
-import { AspectCard } from "@/components/compliance-regulation/AspectCard";
+import { handleFindingsChange } from "@/utils/aspectHandlers";
+import type { ComplianceRegulationAspect } from "@/types/compliance-regulation";
 import { RatingKey } from "@/components/shared/RatingKey";
-import { RatingLevel } from "@/types/ratings";
 
 const initialAspects: ComplianceRegulationAspect[] = [
   {
     name: "Regulatory Awareness",
     description: "Staying updated on local and global AI regulations.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Compliance Monitoring",
@@ -55,45 +56,42 @@ const ComplianceRegulationAspects = () => {
   const [aspects, setAspects] = useState<ComplianceRegulationAspect[]>(initialAspects);
 
   useEffect(() => {
-    const loadRatings = async () => {
-      if (!projectName || !assessmentDate) return;
-
-      try {
-        console.log('Loading compliance regulation ratings for:', projectName, assessmentDate);
-        const { data: ratings, error } = await supabase
-          .from("ratings")
-          .select("*")
-          .eq("project_name", projectName)
-          .eq("assessment_date", assessmentDate)
-          .eq("pillar_title", "Legal")
-          .like("practice_name", 'ComplianceRegulation:%');
-
-        if (error) throw error;
-
-        console.log('Loaded compliance regulation ratings:', ratings);
-
-        if (ratings && ratings.length > 0) {
-          const savedAspects = [...aspects];
-          ratings.forEach(rating => {
-            const aspectName = rating.practice_name.replace("ComplianceRegulation:", "");
-            const aspectIndex = savedAspects.findIndex(
-              aspect => aspect.name === aspectName
-            );
-            if (aspectIndex !== -1 && rating.rating) {
-              const typedRating = rating.rating as RatingLevel;
-              savedAspects[aspectIndex].rating = typedRating;
-            }
-          });
-          setAspects(savedAspects);
-        }
-      } catch (error) {
-        console.error("Error loading ratings:", error);
-        toast.error("Failed to load ratings");
-      }
-    };
-
     loadRatings();
   }, [projectName, assessmentDate]);
+
+  const loadRatings = async () => {
+    if (!projectName || !assessmentDate) return;
+
+    try {
+      const { data: ratings, error } = await supabase
+        .from("ratings")
+        .select("*")
+        .eq("project_name", projectName)
+        .eq("assessment_date", assessmentDate)
+        .eq("pillar_title", "Legal")
+        .like("practice_name", 'ComplianceRegulation:%');
+
+      if (error) throw error;
+
+      if (ratings && ratings.length > 0) {
+        const savedAspects = [...aspects];
+        ratings.forEach(rating => {
+          const aspectName = rating.practice_name.replace("ComplianceRegulation:", "");
+          const aspectIndex = savedAspects.findIndex(
+            aspect => aspect.name === aspectName
+          );
+          if (aspectIndex !== -1) {
+            savedAspects[aspectIndex].rating = rating.rating as ComplianceRegulationAspect["rating"];
+            savedAspects[aspectIndex].findings = rating.findings || "";
+          }
+        });
+        setAspects(savedAspects);
+      }
+    } catch (error) {
+      console.error("Error loading ratings:", error);
+      toast.error("Failed to load ratings");
+    }
+  };
 
   const handleAspectClick = async (index: number) => {
     if (!projectName || !assessmentDate) {
@@ -101,17 +99,17 @@ const ComplianceRegulationAspects = () => {
       return;
     }
 
-    const ratings: RatingLevel[] = [
+    const ratings: ComplianceRegulationAspect["rating"][] = [
       "Largely in Place",
       "Somewhat in Place",
       "Not in Place"
     ];
+    
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
 
     try {
-      // Save the individual aspect rating
       const { error: aspectError } = await supabase
         .from("ratings")
         .upsert({
@@ -119,38 +117,48 @@ const ComplianceRegulationAspects = () => {
           assessment_date: assessmentDate,
           pillar_title: "Legal",
           practice_name: `ComplianceRegulation:${aspects[index].name}`,
-          rating: nextRating
+          rating: nextRating,
+          findings: aspects[index].findings
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (aspectError) throw aspectError;
 
-      // Update local state
       const newAspects = [...aspects];
       newAspects[index] = { ...aspects[index], rating: nextRating };
       setAspects(newAspects);
-
-      console.log(`Updated aspect ${aspects[index].name} to ${nextRating}`);
     } catch (error) {
       console.error("Error updating aspect rating:", error);
       toast.error("Failed to update rating");
     }
   };
 
-  const handleSaveOverallRating = async () => {
+  const onFindingsChange = async (index: number, findings: string) => {
+    await handleFindingsChange(
+      index,
+      findings,
+      projectName,
+      assessmentDate,
+      "Legal",
+      `ComplianceRegulation:${aspects[index].name}`,
+      aspects[index].rating
+    );
+
+    const newAspects = [...aspects];
+    newAspects[index] = { ...aspects[index], findings };
+    setAspects(newAspects);
+  };
+
+  const handleSave = async () => {
     if (!projectName || !assessmentDate) {
       toast.error("Project name and assessment date are required");
       return;
     }
 
-    const overallRating = calculateOverallRating(aspects);
-    if (!overallRating) {
-      toast.error("Please rate at least one aspect");
-      return;
-    }
-
     try {
+      const overallRating = calculateOverallRating(aspects);
+      
       const { error } = await supabase
         .from("ratings")
         .upsert({
@@ -189,18 +197,14 @@ const ComplianceRegulationAspects = () => {
           </div>
         </div>
 
-        <div className="grid gap-4">
-          {aspects.map((aspect, index) => (
-            <AspectCard
-              key={aspect.name}
-              aspect={aspect}
-              onClick={() => handleAspectClick(index)}
-            />
-          ))}
-        </div>
+        <AspectGrid
+          aspects={aspects}
+          onAspectClick={handleAspectClick}
+          onFindingsChange={onFindingsChange}
+        />
 
         <div className="flex justify-end">
-          <Button onClick={handleSaveOverallRating}>Save Overall Rating</Button>
+          <Button onClick={handleSave}>Save Overall Rating</Button>
         </div>
       </div>
     </div>
