@@ -1,4 +1,4 @@
-import { AspectCard } from "@/components/shared/AspectCard";
+import { AspectCard } from "@/components/business-alignment/AspectCard";
 import type { TrainingAspect } from "@/types/training";
 
 interface TrainingGridProps {
