@@ -1,12 +1,14 @@
 import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import type { ComplianceRegulationAspect } from "@/types/compliance-regulation";
 
 interface AspectCardProps {
   aspect: ComplianceRegulationAspect;
   onClick: () => void;
+  onFindingsChange: (findings: string) => void;
 }
 
-export const AspectCard = ({ aspect, onClick }: AspectCardProps) => {
+export const AspectCard = ({ aspect, onClick, onFindingsChange }: AspectCardProps) => {
   const getRatingColor = (rating: ComplianceRegulationAspect["rating"]) => {
     switch (rating) {
       case "Largely in Place":
@@ -20,13 +22,27 @@ export const AspectCard = ({ aspect, onClick }: AspectCardProps) => {
     }
   };
 
+  const handleFindingsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onFindingsChange(e.target.value);
+  };
+
   return (
-    <Card
-      className={`p-4 cursor-pointer transition-colors duration-200 ${getRatingColor(aspect.rating)}`}
-      onClick={onClick}
-    >
-      <h3 className="font-semibold">{aspect.name}</h3>
-      <p className="text-sm mt-1">{aspect.description}</p>
-    </Card>
+    <div className="flex gap-4">
+      <Card
+        className={`flex-1 p-4 cursor-pointer transition-colors duration-200 ${getRatingColor(aspect.rating)}`}
+        onClick={onClick}
+      >
+        <h3 className="font-semibold">{aspect.name}</h3>
+        <p className="text-sm mt-1">{aspect.description}</p>
+      </Card>
+      <div className="w-96">
+        <Textarea
+          placeholder="Enter findings..."
+          value={aspect.findings || ""}
+          onChange={handleFindingsChange}
+          className="h-full min-h-[100px] resize-none"
+        />
+      </div>
+    </div>
   );
 };
