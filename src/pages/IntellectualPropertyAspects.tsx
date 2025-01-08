@@ -24,7 +24,6 @@ export default function IntellectualPropertyAspects() {
     try {
       console.log("Saving intellectual property overall rating...");
       
-      // Calculate and save the overall rating
       const overallRating = calculateOverallRating(aspects);
       
       const { error } = await supabase

@@ -8,37 +8,44 @@ const initialAspects: BusinessAlignmentAspect[] = [
   {
     name: "Business Objectives",
     description: "Clear definition of how AI aligns with overall business objectives.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Value Proposition",
     description: "Demonstrated value provided by Generative AI solutions.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "ROI Measurement",
     description: "Metrics and methods for measuring ROI of AI initiatives.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Alignment Meetings",
     description: "Regular alignment meetings between AI teams and business stakeholders.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Use Case Identification",
     description: "Effective processes for identifying and prioritizing AI use cases.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "AI Roadmap",
     description: "A well-defined roadmap detailing AI implementation phases.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Stakeholder Buy-in",
     description: "Level of support from key stakeholders across the organization.",
-    rating: null
+    rating: null,
+    findings: ""
   }
 ];
 
@@ -71,6 +78,7 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
             if (aspectIndex !== -1 && rating.rating) {
               const typedRating = rating.rating as RatingLevel;
               savedAspects[aspectIndex].rating = typedRating;
+              savedAspects[aspectIndex].findings = rating.findings || "";
             }
           });
           setAspects(savedAspects);
@@ -100,9 +108,16 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     setAspects(newAspects);
   };
 
+  const handleFindingsChange = (index: number, findings: string) => {
+    const newAspects = [...aspects];
+    newAspects[index] = { ...aspects[index], findings };
+    setAspects(newAspects);
+  };
+
   return {
     aspects,
     handleAspectClick,
+    handleFindingsChange,
     setAspects
   };
 };

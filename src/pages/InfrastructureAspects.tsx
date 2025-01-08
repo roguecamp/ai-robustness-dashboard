@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AspectCard } from "@/components/business-alignment/AspectCard";
 import type { InfrastructureAspect } from "@/types/infrastructure";
 import type { RatingLevel } from "@/types/ratings";
+import { calculateOverallRating } from "@/utils/infrastructureScoring";
 
 const initialAspects: InfrastructureAspect[] = [
   {
@@ -111,12 +112,12 @@ const InfrastructureAspects = () => {
       "Somewhat in Place",
       "Not in Place"
     ];
+    
     const currentRating = aspects[index].rating;
     const currentIndex = ratings.indexOf(currentRating);
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
-
+    
     try {
-      // Save the individual aspect rating
       const { error: aspectError } = await supabase
         .from("ratings")
         .upsert({
@@ -124,14 +125,14 @@ const InfrastructureAspects = () => {
           assessment_date: assessmentDate,
           pillar_title: "Solution",
           practice_name: `Infrastructure:${aspects[index].name}`,
-          rating: nextRating
+          rating: nextRating,
+          findings: aspects[index].findings
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (aspectError) throw aspectError;
 
-      // Update local state
       const newAspects = [...aspects];
       newAspects[index] = { ...aspects[index], rating: nextRating };
       setAspects(newAspects);
@@ -183,7 +184,6 @@ const InfrastructureAspects = () => {
     try {
       const overallRating = calculateOverallRating(aspects);
       
-      // Update the overall rating
       const { error } = await supabase
         .from("ratings")
         .upsert({
