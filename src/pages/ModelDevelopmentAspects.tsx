@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { modelDevelopmentAspects, type ModelDevelopmentAspect } from "@/types/model-development";
+import { modelDevelopmentAspects } from "@/types/model-development";
 import { calculateOverallRating } from "@/utils/modelDevelopmentScoring";
+import { ModelDevelopmentGrid } from "@/components/model-development/ModelDevelopmentGrid";
 
 const ModelDevelopmentAspects = () => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const ModelDevelopmentAspects = () => {
   const projectName = queryParams.get('project');
   const assessmentDate = queryParams.get('date');
   
-  const [aspects, setAspects] = useState<ModelDevelopmentAspect[]>(modelDevelopmentAspects);
+  const [aspects, setAspects] = useState(modelDevelopmentAspects);
 
   useEffect(() => {
     const loadAspectRatings = async () => {
@@ -24,7 +24,7 @@ const ModelDevelopmentAspects = () => {
         console.log('Loading Model Development aspect ratings for:', projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from('ratings')
-          .select('practice_name, rating')
+          .select('practice_name, rating, findings')
           .eq('project_name', projectName)
           .eq('assessment_date', assessmentDate)
           .eq('pillar_title', 'Solution')
@@ -38,7 +38,8 @@ const ModelDevelopmentAspects = () => {
             const matchingRating = ratings.find(r => r.practice_name === `ModelDevelopment:${aspect.name}`);
             return {
               ...aspect,
-              rating: matchingRating?.rating as ModelDevelopmentAspect["rating"] || null
+              rating: matchingRating?.rating as typeof aspect.rating || null,
+              findings: matchingRating?.findings || ""
             };
           });
           setAspects(updatedAspects);
@@ -52,44 +53,18 @@ const ModelDevelopmentAspects = () => {
     loadAspectRatings();
   }, [projectName, assessmentDate]);
 
-  const getRatingColor = (rating: ModelDevelopmentAspect["rating"]) => {
-    switch (rating) {
-      case "Largely in Place":
-        return "bg-green-700 text-white";
-      case "Somewhat in Place":
-        return "bg-green-300";
-      case "Not in Place":
-        return "bg-white border border-gray-200";
-      default:
-        return "bg-gray-100 border border-gray-200";
-    }
-  };
-
-  const handleRatingChange = async (index: number) => {
+  const handleAspectClick = async (index: number) => {
     if (!projectName || !assessmentDate) {
       toast.error("Project name and assessment date are required");
       return;
     }
 
-    const ratings: ModelDevelopmentAspect["rating"][] = [
-      "Largely in Place",
-      "Somewhat in Place",
-      "Not in Place"
-    ];
-    
-    const updatedAspects = [...aspects];
+    const ratings = ["Largely in Place", "Somewhat in Place", "Not in Place"] as const;
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
-    const nextIndex = (currentIndex + 1) % ratings.length;
-    const newRating = ratings[nextIndex];
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
-    updatedAspects[index] = {
-      ...aspects[index],
-      rating: newRating
-    };
-
     try {
-      console.log(`Saving individual rating for ${aspects[index].name}:`, newRating);
       const { error } = await supabase
         .from('ratings')
         .upsert({
@@ -97,17 +72,57 @@ const ModelDevelopmentAspects = () => {
           assessment_date: assessmentDate,
           pillar_title: 'Solution',
           practice_name: `ModelDevelopment:${aspects[index].name}`,
-          rating: newRating
+          rating: nextRating,
+          findings: aspects[index].findings
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (error) throw error;
       
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = {
+        ...aspects[index],
+        rating: nextRating
+      };
       setAspects(updatedAspects);
     } catch (error) {
       console.error("Error saving rating:", error);
       toast.error("Failed to save rating");
+    }
+  };
+
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Solution',
+          practice_name: `ModelDevelopment:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = {
+        ...aspects[index],
+        findings
+      };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
     }
   };
 
@@ -118,7 +133,6 @@ const ModelDevelopmentAspects = () => {
     }
 
     try {
-      // Calculate and save the overall rating
       const overallRating = calculateOverallRating(aspects);
       console.log('Saving overall Model Development rating:', overallRating);
       
@@ -155,18 +169,11 @@ const ModelDevelopmentAspects = () => {
           <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
         </div>
 
-        <div className="grid gap-4">
-          {aspects.map((aspect, index) => (
-            <Card
-              key={aspect.name}
-              className={`p-4 cursor-pointer transition-colors duration-200 ${getRatingColor(aspect.rating)}`}
-              onClick={() => handleRatingChange(index)}
-            >
-              <h3 className="font-semibold">{aspect.name}</h3>
-              <p className="text-sm mt-1">{aspect.description}</p>
-            </Card>
-          ))}
-        </div>
+        <ModelDevelopmentGrid
+          aspects={aspects}
+          onAspectClick={handleAspectClick}
+          onFindingsChange={handleFindingsChange}
+        />
 
         <div className="flex justify-end space-x-4">
           <Button onClick={handleSave}>Save Overall Rating</Button>
