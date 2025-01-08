@@ -8,37 +8,44 @@ const initialAspects: IntellectualPropertyAspect[] = [
   {
     name: "IP Policies",
     description: "Clearly defined policies regarding AI-generated content and data.",
-    rating: "Not in Place"
+    rating: "Not in Place",
+    findings: ""
   },
   {
     name: "Contract Clarity",
     description: "Clear contracts regarding IP ownership with third-party vendors.",
-    rating: "Not in Place"
+    rating: "Not in Place",
+    findings: ""
   },
   {
     name: "IP Protection",
     description: "Mechanisms for protecting AI-generated IP.",
-    rating: "Not in Place"
+    rating: "Not in Place",
+    findings: ""
   },
   {
     name: "Licensing Agreements",
     description: "Proper licensing agreements for AI technologies and datasets.",
-    rating: "Not in Place"
+    rating: "Not in Place",
+    findings: ""
   },
   {
     name: "Legal Review",
     description: "Regular legal review of IP issues related to AI.",
-    rating: "Not in Place"
+    rating: "Not in Place",
+    findings: ""
   },
   {
     name: "IP Education",
     description: "Training on IP considerations for relevant stakeholders.",
-    rating: "Not in Place"
+    rating: "Not in Place",
+    findings: ""
   },
   {
     name: "IP Compliance",
     description: "Monitoring and ensuring compliance with IP policies and laws.",
-    rating: "Not in Place"
+    rating: "Not in Place",
+    findings: ""
   }
 ];
 
@@ -72,6 +79,7 @@ export const useIntellectualPropertyAspects = (projectName: string | null, asses
             );
             if (aspectIndex !== -1) {
               savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
+              savedAspects[aspectIndex].findings = rating.findings || "";
             }
           });
           setAspects(savedAspects);
@@ -102,7 +110,6 @@ export const useIntellectualPropertyAspects = (projectName: string | null, asses
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
     try {
-      // Save the individual aspect rating
       const { error: aspectError } = await supabase
         .from("ratings")
         .upsert({
@@ -110,14 +117,14 @@ export const useIntellectualPropertyAspects = (projectName: string | null, asses
           assessment_date: assessmentDate,
           pillar_title: "Legal",
           practice_name: `IntellectualProperty:${aspects[index].name}`,
-          rating: nextRating
+          rating: nextRating,
+          findings: aspects[index].findings
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (aspectError) throw aspectError;
 
-      // Update local state
       const newAspects = [...aspects];
       newAspects[index] = { ...aspects[index], rating: nextRating };
       setAspects(newAspects);
@@ -129,9 +136,43 @@ export const useIntellectualPropertyAspects = (projectName: string | null, asses
     }
   };
 
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Legal",
+          practice_name: `IntellectualProperty:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], findings };
+      setAspects(newAspects);
+
+      console.log(`Updated findings for ${aspects[index].name}`);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
+    }
+  };
+
   return {
     aspects,
     handleAspectClick,
+    handleFindingsChange,
     setAspects
   };
 };
