@@ -104,14 +104,18 @@ export const Dashboard = () => {
     
     if (projectParam) {
       setProjectName(projectParam);
+    } else {
+      // Clear project name if not in URL
+      setProjectName('');
+      resetPillarRatings();
     }
     
     if (dateParam) {
       setAssessmentDate(dateParam);
     }
-  }, []);
+  }, [searchParams]);
 
-  // Load ratings when project name or assessment date changes
+  // Load or reset ratings based on project name and assessment date
   useEffect(() => {
     console.log('Project name changed to:', projectName);
     if (!projectName || !assessmentDate) {
@@ -172,9 +176,12 @@ export const Dashboard = () => {
       params.set('project', projectName);
     } else {
       params.delete('project');
+      resetPillarRatings(); // Clear ratings when project name is removed
     }
     if (assessmentDate) {
       params.set('date', assessmentDate);
+    } else {
+      params.delete('date');
     }
     setSearchParams(params);
   }, [projectName, assessmentDate]);
