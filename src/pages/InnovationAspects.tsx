@@ -1,56 +1,10 @@
-import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { AspectCard } from "@/components/innovation/AspectCard";
+import { AspectGrid } from "@/components/shared/AspectGrid";
+import { useInnovationAspects } from "@/hooks/useInnovationAspects";
 import { calculateOverallRating } from "@/utils/innovationScoring";
-import type { InnovationAspect } from "@/types/innovation";
-
-const innovationAspects: InnovationAspect[] = [
-  {
-    name: "Innovation Labs",
-    description: "Existence and utilization of innovation labs for testing AI solutions.",
-    rating: null,
-    findings: ""
-  },
-  {
-    name: "Agile Methodology",
-    description: "Adoption of agile methodologies in AI development cycles.",
-    rating: null,
-    findings: ""
-  },
-  {
-    name: "Proof of Concept (POC) Processes",
-    description: "Structured processes for developing and evaluating POCs.",
-    rating: null,
-    findings: ""
-  },
-  {
-    name: "Risk Tolerance",
-    description: "Willingness to invest in innovative but risky AI projects.",
-    rating: null,
-    findings: ""
-  },
-  {
-    name: "Idea Generation",
-    description: "Processes for generating and evaluating new AI ideas.",
-    rating: null,
-    findings: ""
-  },
-  {
-    name: "Experimentation Culture",
-    description: "Encouragement of experimentation and learning from failures.",
-    rating: null,
-    findings: ""
-  },
-  {
-    name: "Scalability Assessments",
-    description: "Processes to assess the scalability of innovative solutions.",
-    rating: null,
-    findings: ""
-  }
-];
 
 const InnovationAspects = () => {
   const navigate = useNavigate();
@@ -59,61 +13,7 @@ const InnovationAspects = () => {
   const projectName = queryParams.get('project');
   const assessmentDate = queryParams.get('date');
   
-  const [aspects, setAspects] = useState<InnovationAspect[]>(innovationAspects);
-
-  useEffect(() => {
-    const loadAspectRatings = async () => {
-      if (!projectName || !assessmentDate) return;
-
-      try {
-        const { data: ratings, error } = await supabase
-          .from('ratings')
-          .select('practice_name, rating')
-          .eq('project_name', projectName)
-          .eq('assessment_date', assessmentDate)
-          .eq('pillar_title', 'Strategy')
-          .like('practice_name', 'Innovation:%');
-
-        if (error) throw error;
-
-        if (ratings && ratings.length > 0) {
-          const updatedAspects = aspects.map(aspect => {
-            const matchingRating = ratings.find(r => r.practice_name === `Innovation:${aspect.name}`);
-            return {
-              ...aspect,
-              rating: matchingRating?.rating as InnovationAspect["rating"] || null
-            };
-          });
-          setAspects(updatedAspects);
-        }
-      } catch (error) {
-        console.error("Error loading ratings:", error);
-        toast.error("Failed to load aspect ratings");
-      }
-    };
-
-    loadAspectRatings();
-  }, [projectName, assessmentDate]);
-
-  const handleAspectClick = (index: number) => {
-    const ratings: InnovationAspect["rating"][] = [
-      "Largely in Place",
-      "Somewhat in Place",
-      "Not in Place"
-    ];
-    
-    const updatedAspects = [...aspects];
-    const currentRating = aspects[index].rating;
-    const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
-    const nextIndex = (currentIndex + 1) % ratings.length;
-    
-    updatedAspects[index] = {
-      ...aspects[index],
-      rating: ratings[nextIndex]
-    };
-    
-    setAspects(updatedAspects);
-  };
+  const { aspects, handleAspectClick, handleFindingsChange } = useInnovationAspects(projectName, assessmentDate);
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
@@ -132,15 +32,13 @@ const InnovationAspects = () => {
             assessment_date: assessmentDate,
             pillar_title: 'Strategy',
             practice_name: `Innovation:${aspect.name}`,
-            rating: aspect.rating
+            rating: aspect.rating,
+            findings: aspect.findings
           }, {
             onConflict: 'project_name,assessment_date,pillar_title,practice_name'
           });
 
-        if (aspectError) {
-          console.error(`Error saving aspect ${aspect.name}:`, aspectError);
-          throw aspectError;
-        }
+        if (aspectError) throw aspectError;
       }
 
       // Calculate and save the overall innovation rating
@@ -159,10 +57,7 @@ const InnovationAspects = () => {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
-      if (error) {
-        console.error('Error saving overall rating:', error);
-        throw error;
-      }
+      if (error) throw error;
       
       toast.success("Innovation aspects saved successfully");
       navigate('/');
@@ -183,17 +78,13 @@ const InnovationAspects = () => {
           <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
         </div>
 
-        <div className="grid gap-4">
-          {aspects.map((aspect, index) => (
-            <AspectCard
-              key={aspect.name}
-              aspect={aspect}
-              onClick={() => handleAspectClick(index)}
-            />
-          ))}
-        </div>
+        <AspectGrid
+          aspects={aspects}
+          onAspectClick={handleAspectClick}
+          onFindingsChange={handleFindingsChange}
+        />
 
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-end">
           <Button onClick={handleSave}>Save Overall Rating</Button>
         </div>
       </div>
