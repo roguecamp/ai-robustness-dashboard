@@ -1,96 +1,192 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { calculateOverallRating } from "@/utils/dataGovernanceScoring";
-import { DataGovernanceHeader } from "@/components/data-governance/DataGovernanceHeader";
 import { DataGovernanceGrid } from "@/components/data-governance/DataGovernanceGrid";
-import { useDataGovernanceAspects } from "@/hooks/useDataGovernanceAspects";
+import type { DataGovernanceAspect } from "@/types/data-governance";
+import { calculateOverallRating } from "@/utils/dataGovernanceScoring";
+
+const initialAspects: DataGovernanceAspect[] = [
+  {
+    name: "Data Quality",
+    description: "Processes for ensuring data quality and accuracy",
+    rating: null,
+    findings: ""
+  },
+  {
+    name: "Data Security",
+    description: "Measures to protect data from unauthorized access",
+    rating: null,
+    findings: ""
+  },
+  {
+    name: "Data Privacy",
+    description: "Compliance with data privacy regulations",
+    rating: null,
+    findings: ""
+  },
+  {
+    name: "Data Governance Framework",
+    description: "Established framework for data governance",
+    rating: null,
+    findings: ""
+  },
+  {
+    name: "Data Lifecycle Management",
+    description: "Processes for managing data throughout its lifecycle",
+    rating: null,
+    findings: ""
+  },
+  {
+    name: "Data Stewardship",
+    description: "Roles and responsibilities for data stewardship",
+    rating: null,
+    findings: ""
+  },
+  {
+    name: "Data Access Controls",
+    description: "Controls to manage access to data",
+    rating: null,
+    findings: ""
+  }
+];
 
 export default function DataGovernanceAspects() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
-  
-  const { aspects, isLoading, handleAspectClick } = useDataGovernanceAspects(projectName, assessmentDate);
+  const [aspects, setAspects] = useState<DataGovernanceAspect[]>(initialAspects);
 
-  const handleSave = async () => {
+  useEffect(() => {
+    loadAspects();
+  }, [projectName, assessmentDate]);
+
+  const loadAspects = async () => {
+    if (!projectName || !assessmentDate) return;
+
+    try {
+      const { data: ratings, error } = await supabase
+        .from("ratings")
+        .select("*")
+        .eq("project_name", projectName)
+        .eq("assessment_date", assessmentDate)
+        .eq("pillar_title", "Data")
+        .like("practice_name", "DataGovernance:%");
+
+      if (error) throw error;
+
+      if (ratings && ratings.length > 0) {
+        const updatedAspects = aspects.map(aspect => {
+          const rating = ratings.find(r => r.practice_name === `DataGovernance:${aspect.name}`);
+          return {
+            ...aspect,
+            rating: rating?.rating as DataGovernanceAspect["rating"] || null,
+            findings: rating?.findings || ""
+          };
+        });
+        setAspects(updatedAspects);
+      }
+    } catch (error) {
+      console.error("Error loading ratings:", error);
+      toast.error("Failed to load ratings");
+    }
+  };
+
+  const handleAspectClick = async (index: number) => {
     if (!projectName || !assessmentDate) {
-      toast.error("Missing project information");
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    const ratings: DataGovernanceAspect["rating"][] = [
+      "Largely in Place",
+      "Somewhat in Place",
+      "Not in Place"
+    ];
+    
+    const currentRating = aspects[index].rating;
+    const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
+
+    try {
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Data",
+          practice_name: `DataGovernance:${aspects[index].name}`,
+          rating: nextRating,
+          findings: aspects[index].findings
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], rating: nextRating };
+      setAspects(newAspects);
+
+      console.log(`Updated aspect ${aspects[index].name} to ${nextRating}`);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
+  };
+
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
       return;
     }
 
     try {
-      console.log("Saving data governance ratings...");
-      
-      // Save individual aspect ratings
-      for (const aspect of aspects) {
-        const { error: aspectError } = await supabase
-          .from("ratings")
-          .upsert({
-            project_name: projectName,
-            assessment_date: assessmentDate,
-            pillar_title: "Data",
-            practice_name: `DataGovernance:${aspect.name}`,
-            rating: aspect.rating
-          }, {
-            onConflict: "project_name,assessment_date,pillar_title,practice_name"
-          });
-
-        if (aspectError) {
-          console.error(`Error saving aspect ${aspect.name}:`, aspectError);
-          throw aspectError;
-        }
-      }
-
-      // Calculate and save the overall rating
-      const overallRating = calculateOverallRating(aspects);
-      console.log("Saving overall rating:", overallRating);
-      
       const { error } = await supabase
         .from("ratings")
         .upsert({
           project_name: projectName,
           assessment_date: assessmentDate,
           pillar_title: "Data",
-          practice_name: "Data Governance",
-          rating: overallRating
+          practice_name: `DataGovernance:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings
         }, {
-          onConflict: "project_name,assessment_date,pillar_title,practice_name"
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
-      if (error) {
-        console.error("Error saving overall rating:", error);
-        throw error;
-      }
-      
-      toast.success("Data governance aspects saved successfully");
-      navigate("/");
+      if (error) throw error;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], findings };
+      setAspects(newAspects);
     } catch (error) {
-      console.error("Error saving ratings:", error);
-      toast.error("Failed to save ratings");
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4">Loading data governance aspects...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="container mx-auto py-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <DataGovernanceHeader onBackClick={() => navigate("/")} />
-        <DataGovernanceGrid aspects={aspects} onAspectClick={handleAspectClick} />
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Data Governance Aspects</h1>
+            <p className="text-gray-600">Evaluate each aspect of data governance</p>
+          </div>
+          <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
+        </div>
+
+        <DataGovernanceGrid
+          aspects={aspects}
+          onAspectClick={handleAspectClick}
+          onFindingsChange={handleFindingsChange}
+        />
+
         <div className="flex justify-end">
-          <Button onClick={handleSave}>Save Overall Rating</Button>
+          <Button onClick={() => navigate('/')}>Save Overall Rating</Button>
         </div>
       </div>
     </div>
