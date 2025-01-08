@@ -5,7 +5,7 @@ interface BaseAspect {
   name: string;
   description: string;
   rating: RatingLevel | null;
-  findings: string; // Changed from optional to required to match BusinessAlignmentAspect
+  findings: string;
 }
 
 interface AspectGridProps<T extends BaseAspect> {
