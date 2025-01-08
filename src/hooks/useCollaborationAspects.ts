@@ -8,37 +8,44 @@ const initialAspects: CollaborationAspect[] = [
   {
     name: "Interdisciplinary Teams",
     description: "Existance and effectiveness of cross-functional teams.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "External Partnerships",
     description: "Relationships with external AI consultants, vendors, and academic institutions.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Collaboration Tools",
     description: "Availability and utilization of collaboration tools",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Knowledge Sharing",
     description: "Platforms and practices for sharing AI knowledge across the organization",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Project Management",
     description: "Effectiuveness in managing AI projects across different teams.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Innovation Culture",
     description: "Encouragement and support for innovative ideas and experimentation.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Feedback Loops",
     description: "Mechanisms for collecting and acting on feedback from various stakeholders.",
-    rating: null
+    rating: null,
+    findings: ""
   }
 ];
 
@@ -72,6 +79,7 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
             );
             if (aspectIndex !== -1) {
               savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
+              savedAspects[aspectIndex].findings = rating.findings || "";
             }
           });
           setAspects(savedAspects);
@@ -102,7 +110,6 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
     try {
-      // Save the individual aspect rating
       const { error: aspectError } = await supabase
         .from("ratings")
         .upsert({
@@ -110,14 +117,14 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
           assessment_date: assessmentDate,
           pillar_title: "People",
           practice_name: `Collaboration:${aspects[index].name}`,
-          rating: nextRating
+          rating: nextRating,
+          findings: aspects[index].findings
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (aspectError) throw aspectError;
 
-      // Update local state
       const newAspects = [...aspects];
       newAspects[index] = { ...aspects[index], rating: nextRating };
       setAspects(newAspects);
@@ -129,9 +136,43 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
     }
   };
 
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "People",
+          practice_name: `Collaboration:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], findings };
+      setAspects(newAspects);
+
+      console.log(`Updated findings for ${aspects[index].name}`);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
+    }
+  };
+
   return {
     aspects,
     handleAspectClick,
+    handleFindingsChange,
     setAspects
   };
 };

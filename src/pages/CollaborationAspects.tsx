@@ -13,7 +13,7 @@ export default function CollaborationAspects() {
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
   
-  const { aspects, handleAspectClick } = useCollaborationAspects(projectName, assessmentDate);
+  const { aspects, handleAspectClick, handleFindingsChange } = useCollaborationAspects(projectName, assessmentDate);
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
@@ -45,7 +45,7 @@ export default function CollaborationAspects() {
       toast.success("Collaboration aspects saved successfully");
       navigate('/');
     } catch (error) {
-      console.error("Error saving collaboration ratings:", error);
+      console.error("Error saving ratings:", error);
       toast.error("Failed to save ratings");
     }
   };
@@ -69,6 +69,7 @@ export default function CollaborationAspects() {
               key={aspect.name}
               aspect={aspect}
               onClick={() => handleAspectClick(index)}
+              onFindingsChange={(findings) => handleFindingsChange(index, findings)}
             />
           ))}
         </div>
