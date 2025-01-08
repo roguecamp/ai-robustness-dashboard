@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { deploymentMonitoringAspects, type DeploymentMonitoringAspect } from "@/types/deployment-monitoring";
+import { deploymentMonitoringAspects } from "@/types/deployment-monitoring";
+import type { DeploymentMonitoringAspect } from "@/types/deployment-monitoring";
 import { calculateOverallRating } from "@/utils/deploymentMonitoringScoring";
+import { DeploymentMonitoringGrid } from "@/components/deployment-monitoring/DeploymentMonitoringGrid";
 
 const DeploymentMonitoringAspects = () => {
   const navigate = useNavigate();
@@ -21,9 +22,10 @@ const DeploymentMonitoringAspects = () => {
       if (!projectName || !assessmentDate) return;
 
       try {
+        console.log("Loading deployment monitoring ratings for:", projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from('ratings')
-          .select('practice_name, rating')
+          .select('*')
           .eq('project_name', projectName)
           .eq('assessment_date', assessmentDate)
           .eq('pillar_title', 'Solution')
@@ -32,11 +34,13 @@ const DeploymentMonitoringAspects = () => {
         if (error) throw error;
 
         if (ratings && ratings.length > 0) {
+          console.log("Loaded ratings:", ratings);
           const updatedAspects = aspects.map(aspect => {
             const matchingRating = ratings.find(r => r.practice_name === `DeploymentMonitoring:${aspect.name}`);
             return {
               ...aspect,
-              rating: matchingRating?.rating as DeploymentMonitoringAspect["rating"] || null
+              rating: matchingRating?.rating as DeploymentMonitoringAspect["rating"] || null,
+              findings: matchingRating?.findings || ""
             };
           });
           setAspects(updatedAspects);
@@ -50,20 +54,7 @@ const DeploymentMonitoringAspects = () => {
     loadAspectRatings();
   }, [projectName, assessmentDate]);
 
-  const getRatingColor = (rating: DeploymentMonitoringAspect["rating"]) => {
-    switch (rating) {
-      case "Largely in Place":
-        return "bg-green-700 text-white";
-      case "Somewhat in Place":
-        return "bg-green-300";
-      case "Not in Place":
-        return "bg-white border border-gray-200";
-      default:
-        return "bg-gray-100 border border-gray-200";
-    }
-  };
-
-  const handleRatingChange = (index: number) => {
+  const handleAspectClick = (index: number) => {
     const ratings: DeploymentMonitoringAspect["rating"][] = [
       "Largely in Place",
       "Somewhat in Place",
@@ -83,6 +74,41 @@ const DeploymentMonitoringAspects = () => {
     setAspects(updatedAspects);
   };
 
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Missing project information");
+      return;
+    }
+
+    const updatedAspects = [...aspects];
+    updatedAspects[index] = {
+      ...aspects[index],
+      findings
+    };
+    setAspects(updatedAspects);
+
+    try {
+      const { error } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Solution',
+          practice_name: `DeploymentMonitoring:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+      console.log(`Updated findings for ${aspects[index].name}`);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to save findings");
+    }
+  };
+
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
       toast.error("Missing project information");
@@ -99,7 +125,8 @@ const DeploymentMonitoringAspects = () => {
             assessment_date: assessmentDate,
             pillar_title: 'Solution',
             practice_name: `DeploymentMonitoring:${aspect.name}`,
-            rating: aspect.rating
+            rating: aspect.rating,
+            findings: aspect.findings
           }, {
             onConflict: 'project_name,assessment_date,pillar_title,practice_name'
           });
@@ -143,18 +170,11 @@ const DeploymentMonitoringAspects = () => {
           <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
         </div>
 
-        <div className="grid gap-4">
-          {aspects.map((aspect, index) => (
-            <Card
-              key={aspect.name}
-              className={`p-4 cursor-pointer transition-colors duration-200 ${getRatingColor(aspect.rating)}`}
-              onClick={() => handleRatingChange(index)}
-            >
-              <h3 className="font-semibold">{aspect.name}</h3>
-              <p className="text-sm mt-1">{aspect.description}</p>
-            </Card>
-          ))}
-        </div>
+        <DeploymentMonitoringGrid
+          aspects={aspects}
+          onAspectClick={handleAspectClick}
+          onFindingsChange={handleFindingsChange}
+        />
 
         <div className="flex justify-end space-x-4">
           <Button onClick={handleSave}>Save Overall Rating</Button>
