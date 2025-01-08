@@ -3,53 +3,61 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { InfrastructureAspect } from "@/types/infrastructure";
-import { calculateOverallRating } from "@/utils/infrastructureScoring";
 import { AspectCard } from "@/components/business-alignment/AspectCard";
+import type { InfrastructureAspect } from "@/types/infrastructure";
 import type { RatingLevel } from "@/types/ratings";
+
+const initialAspects: InfrastructureAspect[] = [
+  {
+    name: "Scalable Infrastructure",
+    description: "Infrastructure that can scale with growing AI needs.",
+    rating: "Not in Place",
+    findings: ""
+  },
+  {
+    name: "Performance Monitoring",
+    description: "Tools and processes to monitor infrastructure performance.",
+    rating: "Not in Place",
+    findings: ""
+  },
+  {
+    name: "Resource Allocation",
+    description: "Adequate allocation of resources (e.g., computing, storage).",
+    rating: "Not in Place",
+    findings: ""
+  },
+  {
+    name: "Cost Management",
+    description: "Monitoring and managing infrastructure costs.",
+    rating: "Not in Place",
+    findings: ""
+  },
+  {
+    name: "Cloud Adoption",
+    description: "Leveraging cloud resources for better scalability and performance.",
+    rating: "Not in Place",
+    findings: ""
+  },
+  {
+    name: "Security Measures",
+    description: "Security measures to protect infrastructure.",
+    rating: "Not in Place",
+    findings: ""
+  },
+  {
+    name: "Disaster Recovery",
+    description: "Effective disaster recovery and backup solutions.",
+    rating: "Not in Place",
+    findings: ""
+  },
+];
 
 const InfrastructureAspects = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
-  const [aspects, setAspects] = useState<InfrastructureAspect[]>([
-    {
-      name: "Scalable Infrastructure",
-      description: "Infrastructure that can scale with growing AI needs.",
-      rating: "Not in Place",
-    },
-    {
-      name: "Performance Monitoring",
-      description: "Tools and processes to monitor infrastructure performance.",
-      rating: "Not in Place",
-    },
-    {
-      name: "Resource Allocation",
-      description: "Adequate allocation of resources (e.g., computing, storage).",
-      rating: "Not in Place",
-    },
-    {
-      name: "Cost Management",
-      description: "Monitoring and managing infrastructure costs.",
-      rating: "Not in Place",
-    },
-    {
-      name: "Cloud Adoption",
-      description: "Leveraging cloud resources for better scalability and performance.",
-      rating: "Not in Place",
-    },
-    {
-      name: "Security Measures",
-      description: "Security measures to protect infrastructure.",
-      rating: "Not in Place",
-    },
-    {
-      name: "Disaster Recovery",
-      description: "Effective disaster recovery and backup solutions.",
-      rating: "Not in Place",
-    },
-  ]);
+  const [aspects, setAspects] = useState<InfrastructureAspect[]>(initialAspects);
 
   useEffect(() => {
     const loadRatings = async () => {
@@ -77,7 +85,8 @@ const InfrastructureAspects = () => {
               aspect => aspect.name === aspectName
             );
             if (aspectIndex !== -1) {
-              savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
+              savedAspects[aspectIndex].rating = rating.rating as InfrastructureAspect["rating"];
+              savedAspects[aspectIndex].findings = rating.findings || "";
             }
           });
           setAspects(savedAspects);
@@ -100,7 +109,7 @@ const InfrastructureAspects = () => {
     const ratings: RatingLevel[] = [
       "Largely in Place",
       "Somewhat in Place",
-      "Not in Place",
+      "Not in Place"
     ];
     const currentRating = aspects[index].rating;
     const currentIndex = ratings.indexOf(currentRating);
@@ -131,6 +140,37 @@ const InfrastructureAspects = () => {
     } catch (error) {
       console.error("Error updating aspect rating:", error);
       toast.error("Failed to update rating");
+    }
+  };
+
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Solution",
+          practice_name: `Infrastructure:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], findings };
+      setAspects(newAspects);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
     }
   };
 
@@ -183,6 +223,7 @@ const InfrastructureAspects = () => {
               key={aspect.name}
               aspect={aspect}
               onClick={() => handleAspectClick(index)}
+              onFindingsChange={(findings) => handleFindingsChange(index, findings)}
             />
           ))}
         </div>

@@ -13,7 +13,7 @@ export default function IntellectualPropertyAspects() {
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
   
-  const { aspects, handleAspectClick } = useIntellectualPropertyAspects(projectName, assessmentDate);
+  const { aspects, handleAspectClick, handleFindingsChange } = useIntellectualPropertyAspects(projectName, assessmentDate);
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
@@ -67,6 +67,7 @@ export default function IntellectualPropertyAspects() {
               key={aspect.name}
               aspect={aspect}
               onClick={() => handleAspectClick(index)}
+              onFindingsChange={(findings) => handleFindingsChange(index, findings)}
             />
           ))}
         </div>
