@@ -13,37 +13,44 @@ const initialAspects: BusinessAlignmentAspect[] = [
   {
     name: "Business Objectives",
     description: "Clear definition of how AI aligns with overall business objectives.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Value Proposition",
     description: "Demonstrated value provided by Generative AI solutions.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "ROI Measurement",
     description: "Metrics and methods for measuring ROI of AI initiatives.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Alignment Meetings",
     description: "Regular alignment meetings between AI teams and business stakeholders.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Use Case Identification",
     description: "Effective processes for identifying and prioritizing AI use cases.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "AI Roadmap",
     description: "A well-defined roadmap detailing AI implementation phases.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Stakeholder Buy-in",
     description: "Level of support from key stakeholders across the organization.",
-    rating: null
+    rating: null,
+    findings: ""
   }
 ];
 
@@ -78,14 +85,15 @@ export default function BusinessAlignmentAspects() {
             const aspectIndex = savedAspects.findIndex(
               aspect => aspect.name === aspectName
             );
-            if (aspectIndex !== -1 && rating.rating) {
+            if (aspectIndex !== -1) {
               savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
+              savedAspects[aspectIndex].findings = rating.findings || "";
             }
           });
           setAspects(savedAspects);
         }
       } catch (error) {
-        console.error("Error loading business alignment ratings:", error);
+        console.error("Error loading ratings:", error);
         toast.error("Failed to load ratings");
       }
     };
@@ -109,6 +117,12 @@ export default function BusinessAlignmentAspects() {
     setAspects(newAspects);
   };
 
+  const handleFindingsChange = (index: number, findings: string) => {
+    const newAspects = [...aspects];
+    newAspects[index] = { ...aspects[index], findings };
+    setAspects(newAspects);
+  };
+
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
       toast.error("Project name and assessment date are required");
@@ -127,7 +141,8 @@ export default function BusinessAlignmentAspects() {
             assessment_date: assessmentDate,
             pillar_title: "Strategy",
             practice_name: `BusinessAlignment:${aspect.name}`,
-            rating: aspect.rating
+            rating: aspect.rating,
+            findings: aspect.findings
           }, {
             onConflict: 'project_name,assessment_date,pillar_title,practice_name'
           });
@@ -163,7 +178,7 @@ export default function BusinessAlignmentAspects() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
         <BusinessAlignmentHeader onBackClick={() => navigate('/')} />
 
         <div className="grid gap-4">
@@ -172,6 +187,7 @@ export default function BusinessAlignmentAspects() {
               key={aspect.name}
               aspect={aspect}
               onClick={() => handleAspectClick(index)}
+              onFindingsChange={(findings) => handleFindingsChange(index, findings)}
             />
           ))}
         </div>
