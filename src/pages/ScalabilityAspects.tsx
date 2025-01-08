@@ -11,40 +11,46 @@ const scalabilityAspects: ScalabilityAspect[] = [
   {
     name: "Data Collection",
     description: "Data Needed is sourced and available",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Quality Metrics",
     description: "Confirm the Data trustworthy to use",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Validation",
     description: "Processes for validating and cleaning data.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Annotation",
     description: "Tools and processes for annotating data, if necessary.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Updates and Relevance",
     description: "Regular updates to ensure data relevance to solutions.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Structure",
     description: "Structured and labeling requirements or use of unstructured data",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Source Diversity",
     description: "Variety in data sources to ensure comprehensive data collection.",
-    rating: null
+    rating: null,
+    findings: ""
   }
 ];
-
 const ScalabilityAspects = () => {
   const navigate = useNavigate();
   const location = useLocation();

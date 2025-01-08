@@ -11,37 +11,44 @@ const innovationAspects: InnovationAspect[] = [
   {
     name: "Innovation Labs",
     description: "Existence and utilization of innovation labs for testing AI solutions.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Agile Methodology",
     description: "Adoption of agile methodologies in AI development cycles.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Proof of Concept (POC) Processes",
     description: "Structured processes for developing and evaluating POCs.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Risk Tolerance",
     description: "Willingness to invest in innovative but risky AI projects.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Idea Generation",
     description: "Processes for generating and evaluating new AI ideas.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Experimentation Culture",
     description: "Encouragement of experimentation and learning from failures.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Scalability Assessments",
     description: "Processes to assess the scalability of innovative solutions.",
-    rating: null
+    rating: null,
+    findings: ""
   }
 ];
 
