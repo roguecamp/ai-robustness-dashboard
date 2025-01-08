@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { AspectGrid } from "@/components/shared/AspectGrid";
 import { useComplianceRegulationAspects } from "@/hooks/useComplianceRegulationAspects";
 import { calculateOverallRating } from "@/utils/complianceRegulationScoring";
-import { RatingKey } from "@/components/shared/RatingKey";
 
 const ComplianceRegulationAspects = () => {
   const navigate = useNavigate();
@@ -75,10 +74,7 @@ const ComplianceRegulationAspects = () => {
               Rate each aspect of Compliance and Regulation by clicking on the cards. Click multiple times to cycle through ratings.
             </p>
           </div>
-          <div className="flex gap-4 items-start">
-            <RatingKey />
-            <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
-          </div>
+          <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
         </div>
 
         <AspectGrid
