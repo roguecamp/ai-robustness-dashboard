@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,10 +8,9 @@ import { calculateOverallRating } from "@/utils/innovationScoring";
 
 const InnovationAspects = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const projectName = queryParams.get('project');
-  const assessmentDate = queryParams.get('date');
+  const [searchParams] = useSearchParams();
+  const projectName = searchParams.get("project");
+  const assessmentDate = searchParams.get("date");
   
   const { aspects, handleAspectClick, handleFindingsChange } = useInnovationAspects(projectName, assessmentDate);
 
@@ -22,26 +21,6 @@ const InnovationAspects = () => {
     }
 
     try {
-      // Save individual aspect ratings
-      for (const aspect of aspects) {
-        console.log(`Saving aspect: ${aspect.name} with rating: ${aspect.rating}`);
-        const { error: aspectError } = await supabase
-          .from('ratings')
-          .upsert({
-            project_name: projectName,
-            assessment_date: assessmentDate,
-            pillar_title: 'Strategy',
-            practice_name: `Innovation:${aspect.name}`,
-            rating: aspect.rating,
-            findings: aspect.findings
-          }, {
-            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-          });
-
-        if (aspectError) throw aspectError;
-      }
-
-      // Calculate and save the overall innovation rating
       const overallRating = calculateOverallRating(aspects);
       console.log('Saving overall innovation rating:', overallRating);
       
@@ -57,8 +36,12 @@ const InnovationAspects = () => {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving overall rating:', error);
+        throw error;
+      }
       
+      console.log('Successfully saved innovation rating:', overallRating);
       toast.success("Innovation aspects saved successfully");
       navigate('/');
     } catch (error) {
@@ -84,7 +67,7 @@ const InnovationAspects = () => {
           onFindingsChange={handleFindingsChange}
         />
 
-        <div className="flex justify-end">
+        <div className="flex justify-end space-x-4">
           <Button onClick={handleSave}>Save Overall Rating</Button>
         </div>
       </div>

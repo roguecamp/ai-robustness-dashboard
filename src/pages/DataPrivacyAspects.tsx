@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { AspectGrid } from "@/components/shared/AspectGrid";
 import { useDataPrivacyAspects } from "@/hooks/useDataPrivacyAspects";
 import { calculateOverallRating } from "@/utils/dataPrivacyScoring";
-import { RatingKey } from "@/components/shared/RatingKey";
 
 const DataPrivacyAspects = () => {
   const navigate = useNavigate();
@@ -75,10 +74,7 @@ const DataPrivacyAspects = () => {
               Rate each aspect of Data Privacy by clicking on the cards. Click multiple times to cycle through ratings.
             </p>
           </div>
-          <div className="flex gap-4 items-start">
-            <RatingKey />
-            <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
-          </div>
+          <Button onClick={() => navigate('/')}>Back to Dashboard</Button>
         </div>
 
         <AspectGrid
