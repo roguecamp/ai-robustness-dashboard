@@ -93,7 +93,8 @@ export const Dashboard = () => {
     setProjectName, 
     setAssessmentDate,
     setPillarRatings,
-    resetPillarRatings 
+    resetPillarRatings,
+    pillarRatings 
   } = useDashboardStore();
 
   // Initialize state from URL parameters
@@ -110,16 +111,15 @@ export const Dashboard = () => {
     }
   }, []);
 
-  // Reset ratings when project name changes
+  // Load ratings when project name or assessment date changes
   useEffect(() => {
     console.log('Project name changed to:', projectName);
-    if (!projectName) {
-      console.log('Resetting all ratings due to empty project name');
+    if (!projectName || !assessmentDate) {
+      console.log('Resetting all ratings due to missing project name or assessment date');
       resetPillarRatings();
       return;
     }
 
-    // Load ratings for the new project
     const loadRatings = async () => {
       try {
         console.log('Loading ratings for:', projectName, assessmentDate);
@@ -143,7 +143,8 @@ export const Dashboard = () => {
               );
               return {
                 name: practice.name,
-                rating: isValidRating(rating?.rating) ? rating.rating : null
+                rating: isValidRating(rating?.rating) ? rating.rating : null,
+                findings: rating?.findings || null
               };
             });
             pillarRatingsMap[pillar.title] = pillarRatings;
