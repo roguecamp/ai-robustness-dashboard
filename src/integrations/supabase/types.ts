@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           assessment_date: string
           created_at: string
+          findings: string | null
           id: string
           pillar_title: string
           practice_name: string
@@ -22,6 +23,7 @@ export type Database = {
         Insert: {
           assessment_date: string
           created_at?: string
+          findings?: string | null
           id?: string
           pillar_title: string
           practice_name: string
@@ -31,6 +33,7 @@ export type Database = {
         Update: {
           assessment_date?: string
           created_at?: string
+          findings?: string | null
           id?: string
           pillar_title?: string
           practice_name?: string
