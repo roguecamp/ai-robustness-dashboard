@@ -11,37 +11,44 @@ const dataAcquisitionAspects: DataAcquisitionAspect[] = [
   {
     name: "Data Collection",
     description: "Data Needed is sourced and available",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Quality Metrics",
     description: "Confirm the Data trustworthy to use",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Validation",
     description: "Processes for validating and cleaning data.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Annotation",
     description: "Tools and processes for annotating data, if necessary.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Updates and Relevance",
     description: "Regular updates to ensure data relevance to solutions.",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Data Structure",
     description: "Structured and labeling requirements or use of unstructured data",
-    rating: null
+    rating: null,
+    findings: ""
   },
   {
     name: "Source Diversity",
     description: "Variety in data sources to ensure comprehensive data collection.",
-    rating: null
+    rating: null,
+    findings: ""
   }
 ];
 
@@ -61,7 +68,7 @@ const DataAcquisitionAspects = () => {
       try {
         const { data: ratings, error } = await supabase
           .from('ratings')
-          .select('practice_name, rating')
+          .select('practice_name, rating, findings')
           .eq('project_name', projectName)
           .eq('assessment_date', assessmentDate)
           .eq('pillar_title', 'Data')
@@ -74,7 +81,8 @@ const DataAcquisitionAspects = () => {
             const matchingRating = ratings.find(r => r.practice_name === `Data Acquisition:${aspect.name}`);
             return {
               ...aspect,
-              rating: matchingRating?.rating as DataAcquisitionAspect["rating"] || null
+              rating: matchingRating?.rating as DataAcquisitionAspect["rating"] || null,
+              findings: matchingRating?.findings || ""
             };
           });
           setAspects(updatedAspects);
@@ -88,24 +96,76 @@ const DataAcquisitionAspects = () => {
     loadAspectRatings();
   }, [projectName, assessmentDate]);
 
-  const handleAspectClick = (index: number) => {
+  const handleAspectClick = async (index: number) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     const ratings: DataAcquisitionAspect["rating"][] = [
       "Largely in Place",
       "Somewhat in Place",
       "Not in Place"
     ];
     
-    const updatedAspects = [...aspects];
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
-    const nextIndex = (currentIndex + 1) % ratings.length;
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
-    updatedAspects[index] = {
-      ...aspects[index],
-      rating: ratings[nextIndex]
-    };
-    
-    setAspects(updatedAspects);
+    try {
+      const { error: aspectError } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Data',
+          practice_name: `Data Acquisition:${aspects[index].name}`,
+          rating: nextRating,
+          findings: aspects[index].findings
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], rating: nextRating };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
+  };
+
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error: aspectError } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Data',
+          practice_name: `Data Acquisition:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], findings };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
+    }
   };
 
   const handleSave = async () => {
@@ -115,24 +175,6 @@ const DataAcquisitionAspects = () => {
     }
 
     try {
-      // Save individual aspect ratings
-      for (const aspect of aspects) {
-        const { error: aspectError } = await supabase
-          .from('ratings')
-          .upsert({
-            project_name: projectName,
-            assessment_date: assessmentDate,
-            pillar_title: 'Data',
-            practice_name: `Data Acquisition:${aspect.name}`,
-            rating: aspect.rating
-          }, {
-            onConflict: 'project_name,assessment_date,pillar_title,practice_name'
-          });
-
-        if (aspectError) throw aspectError;
-      }
-
-      // Calculate and save the overall data acquisition rating
       const overallRating = calculateOverallRating(aspects);
       
       const { error } = await supabase
@@ -174,6 +216,7 @@ const DataAcquisitionAspects = () => {
               key={aspect.name}
               aspect={aspect}
               onClick={() => handleAspectClick(index)}
+              onFindingsChange={(findings) => handleFindingsChange(index, findings)}
             />
           ))}
         </div>
