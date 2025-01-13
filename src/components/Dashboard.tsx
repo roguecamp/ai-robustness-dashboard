@@ -136,6 +136,7 @@ export const Dashboard = () => {
 
         if (error) {
           console.error('Error loading ratings:', error);
+          toast.error("Failed to load ratings: " + error.message);
           throw error;
         }
 
@@ -149,6 +150,7 @@ export const Dashboard = () => {
           });
 
           // Update with actual ratings from database
+          let updatedCount = 0;
           ratings.forEach(rating => {
             const pillarTitle = rating.pillar_title;
             const practiceName = rating.practice_name;
@@ -164,20 +166,24 @@ export const Dashboard = () => {
                   rating: rating.rating,
                   findings: rating.findings || null
                 };
+                updatedCount++;
                 console.log(`Updated rating for ${pillarTitle} - ${practiceName}:`, rating.rating);
               }
             }
           });
 
-          console.log('Setting pillar ratings:', pillarRatingsMap);
+          console.log(`Successfully loaded ${updatedCount} ratings`);
           setPillarRatings(pillarRatingsMap);
+          toast.success(`Loaded ${updatedCount} ratings for ${projectName}`);
         } else {
           console.log('No ratings found, using default values');
           resetPillarRatings();
+          toast.info("No existing ratings found for this project");
         }
       } catch (error) {
         console.error("Error loading ratings:", error);
         toast.error("Failed to load ratings");
+        resetPillarRatings();
       }
     };
 
@@ -207,6 +213,7 @@ export const Dashboard = () => {
         <PillarGrid pillars={pillars} />
         <SaveRatingsButton />
       </div>
+      <Toaster />
     </div>
   );
 };
