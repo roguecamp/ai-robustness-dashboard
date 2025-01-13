@@ -139,20 +139,35 @@ export const Dashboard = () => {
 
         if (ratings && ratings.length > 0) {
           console.log('Loaded ratings:', ratings);
-          // Group ratings by pillar
           const pillarRatingsMap: Record<string, KeyPractice[]> = {};
           
+          // Initialize all pillars with default practices
           pillars.forEach(pillar => {
-            pillarRatingsMap[pillar.title] = pillar.keyPractices.map(practice => {
-              const rating = ratings.find(
-                r => r.pillar_title === pillar.title && r.practice_name === practice.name
+            pillarRatingsMap[pillar.title] = pillar.keyPractices.map(practice => ({
+              name: practice.name,
+              rating: null,
+              findings: null
+            }));
+          });
+
+          // Update with actual ratings from database
+          ratings.forEach(rating => {
+            const pillarTitle = rating.pillar_title;
+            const practiceName = rating.practice_name;
+            
+            if (pillarRatingsMap[pillarTitle]) {
+              const practiceIndex = pillarRatingsMap[pillarTitle].findIndex(
+                p => p.name === practiceName
               );
-              return {
-                name: practice.name,
-                rating: isValidRating(rating?.rating) ? rating.rating : null,
-                findings: rating?.findings || null
-              };
-            });
+              
+              if (practiceIndex !== -1 && isValidRating(rating.rating)) {
+                pillarRatingsMap[pillarTitle][practiceIndex] = {
+                  name: practiceName,
+                  rating: rating.rating,
+                  findings: rating.findings || null
+                };
+              }
+            }
           });
 
           console.log('Setting pillar ratings:', pillarRatingsMap);
@@ -177,7 +192,6 @@ export const Dashboard = () => {
       params.set('project', projectName);
     } else {
       params.delete('project');
-      resetPillarRatings(); // Clear ratings when project name is removed
     }
     if (assessmentDate) {
       params.set('date', assessmentDate);
