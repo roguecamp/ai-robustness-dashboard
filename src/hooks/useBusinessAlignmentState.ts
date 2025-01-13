@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { BusinessAlignmentAspect } from "@/types/business-alignment";
-import { calculateOverallRating } from "@/utils/businessAlignmentScoring";
 
 const initialAspects: BusinessAlignmentAspect[] = [
   {
@@ -57,7 +56,11 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
   }, [projectName, assessmentDate]);
 
   const loadAspects = async () => {
-    if (!projectName || !assessmentDate) return;
+    if (!projectName || !assessmentDate) {
+      console.log("Missing project name or assessment date, resetting to initial state");
+      setAspects(initialAspects);
+      return;
+    }
 
     try {
       console.log("Loading business alignment ratings for:", projectName, assessmentDate);
@@ -67,24 +70,31 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
         .eq("project_name", projectName)
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
-        .like("practice_name", "BusinessAlignment:%");
+        .eq("practice_name", "Business Alignment");
 
       if (error) throw error;
 
+      console.log("Loaded ratings:", ratings);
+
       if (ratings && ratings.length > 0) {
-        console.log("Loaded business alignment ratings:", ratings);
         const savedAspects = [...initialAspects];
         ratings.forEach(rating => {
-          const aspectName = rating.practice_name.replace("BusinessAlignment:", "");
           const aspectIndex = savedAspects.findIndex(
-            aspect => aspect.name === aspectName
+            aspect => aspect.name === rating.practice_name
           );
           if (aspectIndex !== -1) {
-            savedAspects[aspectIndex].rating = rating.rating as BusinessAlignmentAspect["rating"];
-            savedAspects[aspectIndex].findings = rating.findings || "";
+            savedAspects[aspectIndex] = {
+              ...savedAspects[aspectIndex],
+              rating: rating.rating as BusinessAlignmentAspect["rating"],
+              findings: rating.findings || ""
+            };
           }
         });
+        console.log("Setting aspects to:", savedAspects);
         setAspects(savedAspects);
+      } else {
+        console.log("No ratings found, using initial aspects");
+        setAspects(initialAspects);
       }
     } catch (error) {
       console.error("Error loading ratings:", error);
@@ -115,11 +125,9 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
           project_name: projectName,
           assessment_date: assessmentDate,
           pillar_title: "Strategy",
-          practice_name: `BusinessAlignment:${aspects[index].name}`,
+          practice_name: aspects[index].name,
           rating: nextRating,
           findings: aspects[index].findings
-        }, {
-          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (aspectError) throw aspectError;
@@ -127,7 +135,6 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       const newAspects = [...aspects];
       newAspects[index] = { ...aspects[index], rating: nextRating };
       setAspects(newAspects);
-
       console.log(`Updated aspect ${aspects[index].name} to ${nextRating}`);
     } catch (error) {
       console.error("Error updating aspect rating:", error);
@@ -148,11 +155,9 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
           project_name: projectName,
           assessment_date: assessmentDate,
           pillar_title: "Strategy",
-          practice_name: `BusinessAlignment:${aspects[index].name}`,
+          practice_name: aspects[index].name,
           rating: aspects[index].rating,
           findings: findings
-        }, {
-          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
 
       if (aspectError) throw aspectError;
@@ -169,12 +174,10 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
   const saveOverallRating = async () => {
     if (!projectName || !assessmentDate) {
       toast.error("Project name and assessment date are required");
-      return;
+      return false;
     }
 
     try {
-      const overallRating = calculateOverallRating(aspects);
-      
       const { error } = await supabase
         .from("ratings")
         .upsert({
@@ -182,9 +185,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
           assessment_date: assessmentDate,
           pillar_title: "Strategy",
           practice_name: "Business Alignment",
-          rating: overallRating
-        }, {
-          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+          rating: calculateOverallRating()
         });
 
       if (error) throw error;
@@ -196,6 +197,25 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       toast.error("Failed to save overall rating");
       return false;
     }
+  };
+
+  const calculateOverallRating = () => {
+    const ratingScores = {
+      "Largely in Place": 2,
+      "Somewhat in Place": 1,
+      "Not in Place": 0
+    };
+
+    const totalScore = aspects.reduce((sum, aspect) => {
+      return sum + (aspect.rating ? ratingScores[aspect.rating] : 0);
+    }, 0);
+
+    const maxScore = aspects.length * 2;
+    const percentage = (totalScore / maxScore) * 100;
+
+    if (percentage >= 70) return "Largely in Place";
+    if (percentage >= 30) return "Somewhat in Place";
+    return "Not in Place";
   };
 
   return {
