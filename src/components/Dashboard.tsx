@@ -176,9 +176,13 @@ export const Dashboard = () => {
           setPillarRatings(pillarRatingsMap);
           toast.success(`Loaded ${updatedCount} ratings for ${projectName}`);
         } else {
-          console.log('No ratings found, using default values');
+          // Only show the "no ratings" toast if we've actually queried the database
+          // and found no results for a complete project name
+          if (projectName.trim().length > 0) {
+            console.log('No ratings found for existing project:', projectName);
+            toast.info("No existing ratings found for this project");
+          }
           resetPillarRatings();
-          toast.info("No existing ratings found for this project");
         }
       } catch (error) {
         console.error("Error loading ratings:", error);
