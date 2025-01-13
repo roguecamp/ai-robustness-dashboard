@@ -26,12 +26,12 @@ export const PillarCard = ({
   const [practices, setPractices] = useState<KeyPractice[]>(keyPractices);
 
   useEffect(() => {
-    console.log(`Updating practices for ${title} with:`, keyPractices);
+    console.log(`Checking current ratings for ${title}:`, currentRatings[title]);
     if (currentRatings && currentRatings[title]) {
-      console.log(`Found current ratings for ${title}:`, currentRatings[title]);
+      console.log(`Setting practices for ${title} from current ratings:`, currentRatings[title]);
       setPractices(currentRatings[title]);
     } else {
-      console.log(`No current ratings found for ${title}, using default practices`);
+      console.log(`No current ratings for ${title}, using default practices:`, keyPractices);
       setPractices(keyPractices);
     }
   }, [keyPractices, title, currentRatings]);
@@ -106,6 +106,7 @@ export const PillarCard = ({
   };
 
   const handleRatingChange = (practiceIndex: number, value: RatingLevel) => {
+    console.log(`Updating rating for ${title} - ${practices[practiceIndex].name} to:`, value);
     const updatedPractices = [...practices];
     updatedPractices[practiceIndex] = {
       ...practices[practiceIndex],
@@ -117,12 +118,11 @@ export const PillarCard = ({
       ...currentRatings,
       [title]: updatedPractices
     };
+    console.log(`Calling onUpdate with updated ratings for ${title}:`, updatedRatings);
     onUpdate(updatedRatings);
-    console.log(`Updated ${title} - ${practices[practiceIndex].name}: ${value}`);
   };
 
   const getRatingColor = (rating: RatingLevel | null) => {
-    console.log(`Getting color for rating: ${rating}`);
     switch (rating) {
       case "Largely in Place":
         return "bg-green-700 text-white";

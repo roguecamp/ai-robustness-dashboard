@@ -103,29 +103,31 @@ export const Dashboard = () => {
     const dateParam = searchParams.get('date');
     
     if (projectParam) {
+      console.log('Setting project name from URL:', projectParam);
       setProjectName(projectParam);
     } else {
+      console.log('No project name in URL, resetting state');
       setProjectName('');
       resetPillarRatings();
     }
     
     if (dateParam) {
+      console.log('Setting assessment date from URL:', dateParam);
       setAssessmentDate(dateParam);
     }
   }, [searchParams]);
 
   // Load or reset ratings based on project name and assessment date
   useEffect(() => {
-    console.log('Project name changed to:', projectName);
     if (!projectName || !assessmentDate) {
-      console.log('Resetting all ratings due to missing project name or assessment date');
+      console.log('Missing project name or assessment date, resetting ratings');
       resetPillarRatings();
       return;
     }
 
     const loadRatings = async () => {
       try {
-        console.log('Loading ratings for:', projectName, assessmentDate);
+        console.log('Loading ratings for project:', projectName, 'date:', assessmentDate);
         const { data: ratings, error } = await supabase
           .from("ratings")
           .select("*")
@@ -138,16 +140,12 @@ export const Dashboard = () => {
         }
 
         if (ratings && ratings.length > 0) {
-          console.log('Loaded ratings:', ratings);
+          console.log('Found ratings:', ratings);
           const pillarRatingsMap: Record<string, KeyPractice[]> = {};
           
           // Initialize all pillars with default practices
           pillars.forEach(pillar => {
-            pillarRatingsMap[pillar.title] = pillar.keyPractices.map(practice => ({
-              name: practice.name,
-              rating: null,
-              findings: null
-            }));
+            pillarRatingsMap[pillar.title] = [...pillar.keyPractices];
           });
 
           // Update with actual ratings from database
@@ -166,6 +164,7 @@ export const Dashboard = () => {
                   rating: rating.rating,
                   findings: rating.findings || null
                 };
+                console.log(`Updated rating for ${pillarTitle} - ${practiceName}:`, rating.rating);
               }
             }
           });
@@ -173,7 +172,7 @@ export const Dashboard = () => {
           console.log('Setting pillar ratings:', pillarRatingsMap);
           setPillarRatings(pillarRatingsMap);
         } else {
-          console.log('No ratings found, resetting to default values');
+          console.log('No ratings found, using default values');
           resetPillarRatings();
         }
       } catch (error) {
