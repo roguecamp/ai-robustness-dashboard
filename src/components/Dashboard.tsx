@@ -105,7 +105,6 @@ export const Dashboard = () => {
     if (projectParam) {
       setProjectName(projectParam);
     } else {
-      // Clear project name if not in URL
       setProjectName('');
       resetPillarRatings();
     }
@@ -133,7 +132,10 @@ export const Dashboard = () => {
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error loading ratings:', error);
+          throw error;
+        }
 
         if (ratings && ratings.length > 0) {
           console.log('Loaded ratings:', ratings);
@@ -141,7 +143,7 @@ export const Dashboard = () => {
           const pillarRatingsMap: Record<string, KeyPractice[]> = {};
           
           pillars.forEach(pillar => {
-            const pillarRatings = pillar.keyPractices.map(practice => {
+            pillarRatingsMap[pillar.title] = pillar.keyPractices.map(practice => {
               const rating = ratings.find(
                 r => r.pillar_title === pillar.title && r.practice_name === practice.name
               );
@@ -151,7 +153,6 @@ export const Dashboard = () => {
                 findings: rating?.findings || null
               };
             });
-            pillarRatingsMap[pillar.title] = pillarRatings;
           });
 
           console.log('Setting pillar ratings:', pillarRatingsMap);

@@ -27,10 +27,11 @@ export const PillarCard = ({
 
   useEffect(() => {
     console.log(`Updating practices for ${title} with:`, keyPractices);
-    if (currentRatings[title]) {
+    if (currentRatings && currentRatings[title]) {
       console.log(`Found current ratings for ${title}:`, currentRatings[title]);
       setPractices(currentRatings[title]);
     } else {
+      console.log(`No current ratings found for ${title}, using default practices`);
       setPractices(keyPractices);
     }
   }, [keyPractices, title, currentRatings]);
@@ -98,9 +99,10 @@ export const PillarCard = ({
       "Somewhat in Place",
       "Not in Place",
     ];
-    const currentIndex = ratings.indexOf(practice.rating || "Not in Place");
-    const nextIndex = (currentIndex + 1) % ratings.length;
-    handleRatingChange(index, ratings[nextIndex]);
+    const currentRating = practices[index].rating;
+    const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
+    handleRatingChange(index, nextRating);
   };
 
   const handleRatingChange = (practiceIndex: number, value: RatingLevel) => {
