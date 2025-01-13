@@ -3,6 +3,7 @@ export type RatingLevel = "Largely in Place" | "Somewhat in Place" | "Not in Pla
 export interface KeyPractice {
   name: string;
   rating: RatingLevel | null;
+  findings: string | null;
 }
 
 export interface Pillar {

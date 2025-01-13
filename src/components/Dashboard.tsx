@@ -15,9 +15,9 @@ const pillars: Pillar[] = [
     description: "Team expertise and AI literacy",
     color: "#FF6B6B",
     keyPractices: [
-      { name: "Training and Upskilling", rating: null },
-      { name: "Collaboration", rating: null },
-      { name: "Change Management", rating: null },
+      { name: "Training and Upskilling", rating: null, findings: null },
+      { name: "Collaboration", rating: null, findings: null },
+      { name: "Change Management", rating: null, findings: null },
     ],
   },
   {
@@ -25,9 +25,9 @@ const pillars: Pillar[] = [
     description: "AI implementation and business alignment",
     color: "#9b87f5",
     keyPractices: [
-      { name: "Business Alignment", rating: null },
-      { name: "Scalability and Adoption", rating: null },
-      { name: "Innovation Framework", rating: null },
+      { name: "Business Alignment", rating: null, findings: null },
+      { name: "Scalability and Adoption", rating: null, findings: null },
+      { name: "Innovation Framework", rating: null, findings: null },
     ],
   },
   {
@@ -35,9 +35,9 @@ const pillars: Pillar[] = [
     description: "Data quality and management practices",
     color: "#45B7D1",
     keyPractices: [
-      { name: "Data Acquisition and Quality", rating: null },
-      { name: "Data Governance", rating: null },
-      { name: "Data Privacy", rating: null },
+      { name: "Data Acquisition and Quality", rating: null, findings: null },
+      { name: "Data Governance", rating: null, findings: null },
+      { name: "Data Privacy", rating: null, findings: null },
     ],
   },
   {
@@ -45,9 +45,9 @@ const pillars: Pillar[] = [
     description: "Compliance and regulatory adherence",
     color: "#96CEB4",
     keyPractices: [
-      { name: "Intellectual Property", rating: null },
-      { name: "Ethical Considerations", rating: null },
-      { name: "Compliance and Regulation", rating: null },
+      { name: "Intellectual Property", rating: null, findings: null },
+      { name: "Ethical Considerations", rating: null, findings: null },
+      { name: "Compliance and Regulation", rating: null, findings: null },
     ],
   },
   {
@@ -55,9 +55,9 @@ const pillars: Pillar[] = [
     description: "AI system effectiveness and reliability",
     color: "#222222",
     keyPractices: [
-      { name: "Infrastructure", rating: null },
-      { name: "Model Development and Training", rating: null },
-      { name: "Deployment and Monitoring", rating: null },
+      { name: "Infrastructure", rating: null, findings: null },
+      { name: "Model Development and Training", rating: null, findings: null },
+      { name: "Deployment and Monitoring", rating: null, findings: null },
     ],
   },
   {
@@ -65,16 +65,16 @@ const pillars: Pillar[] = [
     description: "Horizontal Aspect - System security and risk management",
     color: "#D4A5A5",
     keyPractices: [
-      { name: "Training and Awareness", rating: null },
-      { name: "Risk Assessment", rating: null },
-      { name: "Data Leak Protection", rating: null },
-      { name: "Crisis Continuity Planning", rating: null },
-      { name: "Intrusion Detection", rating: null },
-      { name: "Roles and Responsibilities", rating: null },
-      { name: "Investment", rating: null },
-      { name: "Access Restriction", rating: null },
-      { name: "Contractual Obligations", rating: null },
-      { name: "Testing and Validation", rating: null },
+      { name: "Training and Awareness", rating: null, findings: null },
+      { name: "Risk Assessment", rating: null, findings: null },
+      { name: "Data Leak Protection", rating: null, findings: null },
+      { name: "Crisis Continuity Planning", rating: null, findings: null },
+      { name: "Intrusion Detection", rating: null, findings: null },
+      { name: "Roles and Responsibilities", rating: null, findings: null },
+      { name: "Investment", rating: null, findings: null },
+      { name: "Access Restriction", rating: null, findings: null },
+      { name: "Contractual Obligations", rating: null, findings: null },
+      { name: "Testing and Validation", rating: null, findings: null },
     ],
   },
 ];
