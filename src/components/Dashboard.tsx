@@ -125,6 +125,7 @@ export const Dashboard = () => {
       return;
     }
 
+    // Debounce the loading of ratings to avoid unnecessary database queries
     const loadRatings = async () => {
       try {
         console.log('Loading ratings for project:', projectName, 'date:', assessmentDate);
@@ -177,10 +178,18 @@ export const Dashboard = () => {
           toast.success(`Loaded ${updatedCount} ratings for ${projectName}`);
         } else {
           // Only show the "no ratings" toast if we've actually queried the database
-          // and found no results for a complete project name
-          if (projectName.trim().length > 0) {
+          // and found no results for a complete project name that exists in the database
+          const { data: projectExists } = await supabase
+            .from("ratings")
+            .select("project_name")
+            .eq("project_name", projectName)
+            .limit(1);
+
+          if (projectExists && projectExists.length > 0) {
             console.log('No ratings found for existing project:', projectName);
             toast.info("No existing ratings found for this project");
+          } else {
+            console.log('Project does not exist in database:', projectName);
           }
           resetPillarRatings();
         }
@@ -191,7 +200,10 @@ export const Dashboard = () => {
       }
     };
 
-    loadRatings();
+    // Only load ratings if we have a complete project name
+    if (projectName.trim().length > 0) {
+      loadRatings();
+    }
   }, [projectName, assessmentDate]);
 
   // Update URL when state changes
