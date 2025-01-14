@@ -97,25 +97,21 @@ export const Dashboard = () => {
     pillarRatings 
   } = useDashboardStore();
 
-  // Initialize state from URL parameters
+  // Initialize state from URL parameters only if project name is not already set
   useEffect(() => {
     const projectParam = searchParams.get('project');
     const dateParam = searchParams.get('date');
     
-    if (projectParam) {
+    if (projectParam && !projectName) {
       console.log('Setting project name from URL:', projectParam);
       setProjectName(projectParam);
-    } else {
-      console.log('No project name in URL, resetting state');
-      setProjectName('');
-      resetPillarRatings();
     }
     
-    if (dateParam) {
+    if (dateParam && !assessmentDate) {
       console.log('Setting assessment date from URL:', dateParam);
       setAssessmentDate(dateParam);
     }
-  }, [searchParams]);
+  }, [searchParams, projectName, assessmentDate]);
 
   // Load or reset ratings based on project name and assessment date
   useEffect(() => {
@@ -208,18 +204,16 @@ export const Dashboard = () => {
 
   // Update URL when state changes
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    if (projectName) {
-      params.set('project', projectName);
-    } else {
-      params.delete('project');
+    if (projectName || assessmentDate) {
+      const params = new URLSearchParams(searchParams);
+      if (projectName) {
+        params.set('project', projectName);
+      }
+      if (assessmentDate) {
+        params.set('date', assessmentDate);
+      }
+      setSearchParams(params);
     }
-    if (assessmentDate) {
-      params.set('date', assessmentDate);
-    } else {
-      params.delete('date');
-    }
-    setSearchParams(params);
   }, [projectName, assessmentDate]);
 
   return (
