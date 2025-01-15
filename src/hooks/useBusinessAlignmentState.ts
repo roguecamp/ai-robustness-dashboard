@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { BusinessAlignmentAspect } from "@/types/business-alignment";
+import type { RatingLevel } from "@/types/ratings";
 
 const initialAspects: BusinessAlignmentAspect[] = [
   {
@@ -70,7 +71,8 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
         .eq("project_name", projectName)
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
-        .eq("practice_name", "Business Alignment");
+        .eq("practice_name", "Business Alignment")
+        .or(`practice_name.eq.Business Objectives,practice_name.eq.Value Proposition,practice_name.eq.ROI Measurement,practice_name.eq.Alignment Meetings,practice_name.eq.Use Case Identification,practice_name.eq.AI Roadmap,practice_name.eq.Stakeholder Buy-in`);
 
       if (error) throw error;
 
@@ -85,7 +87,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
           if (aspectIndex !== -1) {
             savedAspects[aspectIndex] = {
               ...savedAspects[aspectIndex],
-              rating: rating.rating as BusinessAlignmentAspect["rating"],
+              rating: rating.rating as RatingLevel,
               findings: rating.findings || ""
             };
           }
@@ -108,7 +110,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       return;
     }
 
-    const ratings: BusinessAlignmentAspect["rating"][] = [
+    const ratings: RatingLevel[] = [
       "Largely in Place",
       "Somewhat in Place",
       "Not in Place"
