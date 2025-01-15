@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { BusinessAlignmentAspect } from "@/types/business-alignment";
 import type { RatingLevel } from "@/types/ratings";
+import { useDashboardStore } from "@/components/dashboard/DashboardState";
 
 const initialAspects: BusinessAlignmentAspect[] = [
   {
@@ -49,13 +50,9 @@ const initialAspects: BusinessAlignmentAspect[] = [
   }
 ];
 
-const extractBasePracticeName = (practiceName: string): string => {
-  const colonIndex = practiceName.indexOf(':');
-  return colonIndex !== -1 ? practiceName.substring(colonIndex + 1).trim() : practiceName;
-};
-
 export const useBusinessAlignmentState = (projectName: string | null, assessmentDate: string | null) => {
   const [aspects, setAspects] = useState<BusinessAlignmentAspect[]>(initialAspects);
+  const { setPillarRatings } = useDashboardStore();
 
   useEffect(() => {
     loadAspects();
@@ -76,7 +73,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
         .eq("project_name", projectName)
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
-        .like("practice_name", "Business%");
+        .or(`practice_name.like.Business:*,practice_name.eq.Business Alignment`);
 
       if (error) throw error;
 
@@ -85,17 +82,15 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       if (ratings && ratings.length > 0) {
         const savedAspects = [...initialAspects];
         ratings.forEach(rating => {
-          const basePracticeName = extractBasePracticeName(rating.practice_name);
-          console.log("Processing rating:", rating.practice_name, "Base name:", basePracticeName);
+          const practiceName = rating.practice_name.replace('Business:', '');
+          console.log("Processing rating:", rating.practice_name, "Practice name:", practiceName);
           
           const aspectIndex = savedAspects.findIndex(
-            aspect => aspect.name === basePracticeName || 
-                     rating.practice_name.startsWith(`${aspect.name}:`) ||
-                     rating.practice_name === aspect.name
+            aspect => aspect.name === practiceName
           );
 
           if (aspectIndex !== -1 && rating.rating) {
-            console.log(`Found matching aspect for ${rating.practice_name}:`, savedAspects[aspectIndex].name);
+            console.log(`Found matching aspect for ${practiceName}:`, savedAspects[aspectIndex].name);
             savedAspects[aspectIndex] = {
               ...savedAspects[aspectIndex],
               rating: rating.rating as RatingLevel,
@@ -113,6 +108,37 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       console.error("Error loading ratings:", error);
       toast.error("Failed to load ratings");
       setAspects(initialAspects);
+    }
+  };
+
+  const updateDashboardState = async () => {
+    if (!projectName || !assessmentDate) return;
+
+    try {
+      const { data: ratings, error } = await supabase
+        .from("ratings")
+        .select("*")
+        .eq("project_name", projectName)
+        .eq("assessment_date", assessmentDate);
+
+      if (error) throw error;
+
+      if (ratings) {
+        const pillarRatings: Record<string, any[]> = {};
+        ratings.forEach(rating => {
+          if (!pillarRatings[rating.pillar_title]) {
+            pillarRatings[rating.pillar_title] = [];
+          }
+          pillarRatings[rating.pillar_title].push({
+            name: rating.practice_name,
+            rating: rating.rating,
+            findings: rating.findings
+          });
+        });
+        setPillarRatings(pillarRatings);
+      }
+    } catch (error) {
+      console.error("Error updating dashboard state:", error);
     }
   };
 
@@ -149,6 +175,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       const newAspects = [...aspects];
       newAspects[index] = { ...aspects[index], rating: nextRating };
       setAspects(newAspects);
+      await updateDashboardState();
       console.log(`Updated aspect ${aspects[index].name} to ${nextRating}`);
     } catch (error) {
       console.error("Error updating aspect rating:", error);
@@ -179,6 +206,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       const newAspects = [...aspects];
       newAspects[index] = { ...aspects[index], findings };
       setAspects(newAspects);
+      await updateDashboardState();
     } catch (error) {
       console.error("Error updating findings:", error);
       toast.error("Failed to update findings");
@@ -204,6 +232,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
 
       if (error) throw error;
 
+      await updateDashboardState();
       toast.success("Overall rating saved successfully");
       return true;
     } catch (error) {
