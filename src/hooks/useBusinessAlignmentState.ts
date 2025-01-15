@@ -73,7 +73,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
         .eq("project_name", projectName)
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
-        .or('practice_name.like.Business:%,practice_name.eq.Business Alignment');
+        .or('practice_name.like.Business:%');
 
       if (error) throw error;
 
@@ -82,15 +82,19 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       if (ratings && ratings.length > 0) {
         const savedAspects = [...initialAspects];
         ratings.forEach(rating => {
-          const practiceName = rating.practice_name.replace('Business:', '').trim();
-          console.log("Processing rating:", rating.practice_name, "Practice name:", practiceName);
+          // Remove the "Business:" prefix if it exists
+          const practiceName = rating.practice_name.startsWith('Business:') 
+            ? rating.practice_name.substring(9).trim()
+            : rating.practice_name;
+            
+          console.log("Processing rating for practice:", practiceName);
           
           const aspectIndex = savedAspects.findIndex(
             aspect => aspect.name === practiceName
           );
 
           if (aspectIndex !== -1 && rating.rating) {
-            console.log(`Found matching aspect for ${practiceName}:`, savedAspects[aspectIndex].name);
+            console.log(`Found matching aspect at index ${aspectIndex}:`, savedAspects[aspectIndex].name);
             savedAspects[aspectIndex] = {
               ...savedAspects[aspectIndex],
               rating: rating.rating as RatingLevel,
