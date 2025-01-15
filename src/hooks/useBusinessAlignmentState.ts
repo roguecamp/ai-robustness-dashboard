@@ -236,6 +236,5 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     aspects,
     handleAspectClick,
     handleFindingsChange,
-    setAspects
   };
 };
