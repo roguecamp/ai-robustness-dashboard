@@ -1,5 +1,14 @@
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ProjectInfoProps {
   projectName: string;
@@ -14,21 +23,64 @@ export const ProjectInfo = ({
   assessmentDate,
   setAssessmentDate,
 }: ProjectInfoProps) => {
+  const [existingProjects, setExistingProjects] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        console.log('Fetching existing projects...');
+        const { data, error } = await supabase
+          .from('ratings')
+          .select('project_name')
+          .distinct();
+
+        if (error) {
+          console.error('Error fetching projects:', error);
+          toast.error("Failed to load existing projects");
+          throw error;
+        }
+
+        const projects = data.map(row => row.project_name);
+        console.log('Found projects:', projects);
+        setExistingProjects(projects);
+      } catch (error) {
+        console.error('Error in fetchProjects:', error);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   return (
     <div className="mt-4 space-y-4">
       <div>
         <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-1">
           Project Name (max 20 characters)
         </label>
-        <Input
-          id="projectName"
-          type="text"
-          maxLength={20}
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
-          className="max-w-xs"
-          placeholder="Enter project name"
-        />
+        <Select value={projectName} onValueChange={setProjectName}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Select a project" />
+          </SelectTrigger>
+          <SelectContent>
+            {existingProjects.map((project) => (
+              <SelectItem key={project} value={project}>
+                {project}
+              </SelectItem>
+            ))}
+            <SelectItem value="">New Project</SelectItem>
+          </SelectContent>
+        </Select>
+        {!existingProjects.includes(projectName) && (
+          <Input
+            id="projectName"
+            type="text"
+            maxLength={20}
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            className="max-w-xs mt-2"
+            placeholder="Enter new project name"
+          />
+        )}
       </div>
       <div>
         <label htmlFor="assessmentDate" className="block text-sm font-medium text-gray-700 mb-1">
