@@ -144,7 +144,7 @@ export const ProjectInfo = ({
                   {date}
                 </SelectItem>
               ))}
-              <SelectItem value="">New Assessment</SelectItem>
+              <SelectItem value="__new_date__">New Assessment</SelectItem>
             </SelectContent>
           </Select>
         ) : (
