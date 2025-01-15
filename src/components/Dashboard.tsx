@@ -97,23 +97,23 @@ export const Dashboard = () => {
     pillarRatings 
   } = useDashboardStore();
 
-  // Initialize state from URL parameters only if project name is not already set
+  // Initialize state from URL parameters
   useEffect(() => {
     const projectParam = searchParams.get('project');
     const dateParam = searchParams.get('date');
     
-    if (projectParam && !projectName) {
+    if (projectParam) {
       console.log('Setting project name from URL:', projectParam);
       setProjectName(projectParam);
     }
     
-    if (dateParam && !assessmentDate) {
+    if (dateParam) {
       console.log('Setting assessment date from URL:', dateParam);
       setAssessmentDate(dateParam);
     }
-  }, [searchParams, projectName, assessmentDate]);
+  }, [searchParams]);
 
-  // Load or reset ratings based on project name and assessment date
+  // Load ratings based on project name and assessment date
   useEffect(() => {
     if (!projectName || !assessmentDate) {
       console.log('Missing project name or assessment date, resetting ratings');
@@ -121,7 +121,6 @@ export const Dashboard = () => {
       return;
     }
 
-    // Debounce the loading of ratings to avoid unnecessary database queries
     const loadRatings = async () => {
       try {
         console.log('Loading ratings for project:', projectName, 'date:', assessmentDate);
@@ -147,7 +146,6 @@ export const Dashboard = () => {
           });
 
           // Update with actual ratings from database
-          let updatedCount = 0;
           ratings.forEach(rating => {
             const pillarTitle = rating.pillar_title;
             const practiceName = rating.practice_name;
@@ -163,30 +161,15 @@ export const Dashboard = () => {
                   rating: rating.rating,
                   findings: rating.findings || null
                 };
-                updatedCount++;
-                console.log(`Updated rating for ${pillarTitle} - ${practiceName}:`, rating.rating);
               }
             }
           });
 
-          console.log(`Successfully loaded ${updatedCount} ratings`);
+          console.log('Setting pillar ratings:', pillarRatingsMap);
           setPillarRatings(pillarRatingsMap);
-          toast.success(`Loaded ${updatedCount} ratings for ${projectName}`);
+          toast.success(`Loaded ratings for ${projectName}`);
         } else {
-          // Only show the "no ratings" toast if we've actually queried the database
-          // and found no results for a complete project name that exists in the database
-          const { data: projectExists } = await supabase
-            .from("ratings")
-            .select("project_name")
-            .eq("project_name", projectName)
-            .limit(1);
-
-          if (projectExists && projectExists.length > 0) {
-            console.log('No ratings found for existing project:', projectName);
-            toast.info("No existing ratings found for this project");
-          } else {
-            console.log('Project does not exist in database:', projectName);
-          }
+          console.log('No ratings found, resetting');
           resetPillarRatings();
         }
       } catch (error) {
@@ -196,10 +179,7 @@ export const Dashboard = () => {
       }
     };
 
-    // Only load ratings if we have a complete project name
-    if (projectName.trim().length > 0) {
-      loadRatings();
-    }
+    loadRatings();
   }, [projectName, assessmentDate]);
 
   // Update URL when state changes
