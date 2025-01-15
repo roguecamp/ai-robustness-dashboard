@@ -85,6 +85,12 @@ const isValidRating = (rating: string | null): rating is RatingLevel => {
          rating === "Not in Place";
 };
 
+const extractBasePracticeName = (practiceName: string): string => {
+  // If the practice name contains a colon, take the part after it
+  const colonIndex = practiceName.indexOf(':');
+  return colonIndex !== -1 ? practiceName.substring(colonIndex + 1).trim() : practiceName;
+};
+
 export const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { 
@@ -97,7 +103,6 @@ export const Dashboard = () => {
     pillarRatings 
   } = useDashboardStore();
 
-  // Initialize state from URL parameters only if project name is not already set
   useEffect(() => {
     const projectParam = searchParams.get('project');
     const dateParam = searchParams.get('date');
@@ -113,7 +118,6 @@ export const Dashboard = () => {
     }
   }, [searchParams, projectName, assessmentDate]);
 
-  // Load or reset ratings based on project name and assessment date
   useEffect(() => {
     if (!projectName || !assessmentDate) {
       console.log('Missing project name or assessment date, resetting ratings');
@@ -149,15 +153,16 @@ export const Dashboard = () => {
           ratings.forEach(rating => {
             const pillarTitle = rating.pillar_title;
             const practiceName = rating.practice_name;
+            const basePracticeName = extractBasePracticeName(practiceName);
             
             // Find the pillar and practice that this rating belongs to
             const pillar = pillars.find(p => p.title === pillarTitle);
             if (pillar) {
-              const practice = pillar.keyPractices.find(p => {
-                // Check if the practice name exactly matches or if it's a sub-aspect
-                return p.name === practiceName || 
-                       practiceName.startsWith(`${p.name}:`);
-              });
+              const practice = pillar.keyPractices.find(p => 
+                p.name === basePracticeName || 
+                p.name === practiceName ||
+                practiceName.startsWith(`${p.name}:`)
+              );
 
               if (practice && isValidRating(rating.rating)) {
                 const practiceIndex = pillarRatingsMap[pillarTitle].findIndex(
@@ -206,7 +211,6 @@ export const Dashboard = () => {
     }
   }, [projectName, assessmentDate]);
 
-  // Update URL when state changes
   useEffect(() => {
     if (projectName || assessmentDate) {
       const params = new URLSearchParams(searchParams);
