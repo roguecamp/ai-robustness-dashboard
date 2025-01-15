@@ -115,7 +115,7 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
     try {
-      // First try to update if the record exists
+      // First try to find if the record exists
       const { data: existingData, error: selectError } = await supabase
         .from("ratings")
         .select("*")
@@ -123,7 +123,7 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
         .eq("practice_name", `Business:${aspects[index].name}`)
-        .single();
+        .maybeSingle(); // Changed from .single() to .maybeSingle()
 
       if (selectError && selectError.code !== 'PGRST116') {
         throw selectError;
@@ -177,7 +177,7 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     }
 
     try {
-      // First try to update if the record exists
+      // First try to find if the record exists
       const { data: existingData, error: selectError } = await supabase
         .from("ratings")
         .select("*")
@@ -185,7 +185,7 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
         .eq("practice_name", `Business:${aspects[index].name}`)
-        .single();
+        .maybeSingle(); // Changed from .single() to .maybeSingle()
 
       if (selectError && selectError.code !== 'PGRST116') {
         throw selectError;
