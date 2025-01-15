@@ -49,6 +49,11 @@ const initialAspects: BusinessAlignmentAspect[] = [
   }
 ];
 
+const extractBasePracticeName = (practiceName: string): string => {
+  const colonIndex = practiceName.indexOf(':');
+  return colonIndex !== -1 ? practiceName.substring(colonIndex + 1).trim() : practiceName;
+};
+
 export const useBusinessAlignmentState = (projectName: string | null, assessmentDate: string | null) => {
   const [aspects, setAspects] = useState<BusinessAlignmentAspect[]>(initialAspects);
 
@@ -58,7 +63,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
 
   const loadAspects = async () => {
     if (!projectName || !assessmentDate) {
-      console.log("Missing project name or assessment date, resetting to initial state");
+      console.log("Missing project name or assessment date, using initial aspects");
       setAspects(initialAspects);
       return;
     }
@@ -71,8 +76,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
         .eq("project_name", projectName)
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
-        .eq("practice_name", "Business Alignment")
-        .or(`practice_name.eq.Business Objectives,practice_name.eq.Value Proposition,practice_name.eq.ROI Measurement,practice_name.eq.Alignment Meetings,practice_name.eq.Use Case Identification,practice_name.eq.AI Roadmap,practice_name.eq.Stakeholder Buy-in`);
+        .eq("practice_name", "Business Alignment");
 
       if (error) throw error;
 
@@ -81,10 +85,15 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       if (ratings && ratings.length > 0) {
         const savedAspects = [...initialAspects];
         ratings.forEach(rating => {
+          const basePracticeName = extractBasePracticeName(rating.practice_name);
           const aspectIndex = savedAspects.findIndex(
-            aspect => aspect.name === rating.practice_name
+            aspect => aspect.name === basePracticeName || 
+                     rating.practice_name.startsWith(`${aspect.name}:`) ||
+                     rating.practice_name === aspect.name
           );
-          if (aspectIndex !== -1) {
+
+          if (aspectIndex !== -1 && rating.rating) {
+            console.log(`Found matching aspect for ${rating.practice_name}:`, savedAspects[aspectIndex].name);
             savedAspects[aspectIndex] = {
               ...savedAspects[aspectIndex],
               rating: rating.rating as RatingLevel,
@@ -101,6 +110,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
     } catch (error) {
       console.error("Error loading ratings:", error);
       toast.error("Failed to load ratings");
+      setAspects(initialAspects);
     }
   };
 
