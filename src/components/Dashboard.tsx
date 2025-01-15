@@ -121,7 +121,6 @@ export const Dashboard = () => {
       return;
     }
 
-    // Debounce the loading of ratings to avoid unnecessary database queries
     const loadRatings = async () => {
       try {
         console.log('Loading ratings for project:', projectName, 'date:', assessmentDate);
@@ -147,34 +146,40 @@ export const Dashboard = () => {
           });
 
           // Update with actual ratings from database
-          let updatedCount = 0;
           ratings.forEach(rating => {
             const pillarTitle = rating.pillar_title;
             const practiceName = rating.practice_name;
             
-            if (pillarRatingsMap[pillarTitle]) {
-              const practiceIndex = pillarRatingsMap[pillarTitle].findIndex(
-                p => p.name === practiceName
-              );
-              
-              if (practiceIndex !== -1 && isValidRating(rating.rating)) {
-                pillarRatingsMap[pillarTitle][practiceIndex] = {
-                  name: practiceName,
-                  rating: rating.rating,
-                  findings: rating.findings || null
-                };
-                updatedCount++;
-                console.log(`Updated rating for ${pillarTitle} - ${practiceName}:`, rating.rating);
+            // Find the pillar and practice that this rating belongs to
+            const pillar = pillars.find(p => p.title === pillarTitle);
+            if (pillar) {
+              const practice = pillar.keyPractices.find(p => {
+                // Check if the practice name exactly matches or if it's a sub-aspect
+                return p.name === practiceName || 
+                       practiceName.startsWith(`${p.name}:`);
+              });
+
+              if (practice && isValidRating(rating.rating)) {
+                const practiceIndex = pillarRatingsMap[pillarTitle].findIndex(
+                  p => p.name === practice.name
+                );
+                
+                if (practiceIndex !== -1) {
+                  pillarRatingsMap[pillarTitle][practiceIndex] = {
+                    name: practice.name,
+                    rating: rating.rating,
+                    findings: rating.findings || null
+                  };
+                  console.log(`Updated rating for ${pillarTitle} - ${practice.name}:`, rating.rating);
+                }
               }
             }
           });
 
-          console.log(`Successfully loaded ${updatedCount} ratings`);
+          console.log('Setting pillar ratings:', pillarRatingsMap);
           setPillarRatings(pillarRatingsMap);
-          toast.success(`Loaded ${updatedCount} ratings for ${projectName}`);
+          toast.success(`Loaded ratings for ${projectName}`);
         } else {
-          // Only show the "no ratings" toast if we've actually queried the database
-          // and found no results for a complete project name that exists in the database
           const { data: projectExists } = await supabase
             .from("ratings")
             .select("project_name")
@@ -196,7 +201,6 @@ export const Dashboard = () => {
       }
     };
 
-    // Only load ratings if we have a complete project name
     if (projectName.trim().length > 0) {
       loadRatings();
     }
