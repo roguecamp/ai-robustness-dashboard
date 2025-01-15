@@ -32,7 +32,7 @@ export const ProjectInfo = ({
         const { data, error } = await supabase
           .from('ratings')
           .select('project_name')
-          .distinct();
+          .order('project_name');
 
         if (error) {
           console.error('Error fetching projects:', error);
@@ -40,9 +40,10 @@ export const ProjectInfo = ({
           throw error;
         }
 
-        const projects = data.map(row => row.project_name);
-        console.log('Found projects:', projects);
-        setExistingProjects(projects);
+        // Get unique project names
+        const uniqueProjects = Array.from(new Set(data.map(row => row.project_name)));
+        console.log('Found projects:', uniqueProjects);
+        setExistingProjects(uniqueProjects);
       } catch (error) {
         console.error('Error in fetchProjects:', error);
       }
@@ -67,15 +68,15 @@ export const ProjectInfo = ({
                 {project}
               </SelectItem>
             ))}
-            <SelectItem value="">New Project</SelectItem>
+            <SelectItem value="__new__">New Project</SelectItem>
           </SelectContent>
         </Select>
-        {!existingProjects.includes(projectName) && (
+        {(projectName === "__new__" || !existingProjects.includes(projectName)) && (
           <Input
             id="projectName"
             type="text"
             maxLength={20}
-            value={projectName}
+            value={projectName === "__new__" ? "" : projectName}
             onChange={(e) => setProjectName(e.target.value)}
             className="max-w-xs mt-2"
             placeholder="Enter new project name"
