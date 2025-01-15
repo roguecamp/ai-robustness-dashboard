@@ -93,11 +93,11 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
             aspect => aspect.name === practiceName
           );
 
-          if (aspectIndex !== -1 && rating.rating) {
+          if (aspectIndex !== -1) {
             console.log(`Found matching aspect at index ${aspectIndex}:`, savedAspects[aspectIndex].name);
             savedAspects[aspectIndex] = {
               ...savedAspects[aspectIndex],
-              rating: rating.rating as RatingLevel,
+              rating: rating.rating as RatingLevel || null,
               findings: rating.findings || ""
             };
           }
