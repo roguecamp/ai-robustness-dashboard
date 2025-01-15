@@ -98,6 +98,14 @@ export const ProjectInfo = ({
     }
   };
 
+  const handleDateChange = (value: string) => {
+    if (value === "__new_date__") {
+      setAssessmentDate("");
+    } else {
+      setAssessmentDate(value);
+    }
+  };
+
   return (
     <div className="mt-4 space-y-4">
       <div>
@@ -134,7 +142,7 @@ export const ProjectInfo = ({
           Assessment Date
         </label>
         {availableDates.length > 0 && projectName !== "__new__" ? (
-          <Select value={assessmentDate} onValueChange={setAssessmentDate}>
+          <Select value={assessmentDate} onValueChange={handleDateChange}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select a date" />
             </SelectTrigger>
