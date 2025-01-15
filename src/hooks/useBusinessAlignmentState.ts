@@ -73,7 +73,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
         .eq("project_name", projectName)
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
-        .or(`practice_name.like.Business:*,practice_name.eq.Business Alignment`);
+        .or('practice_name.like.Business:%,practice_name.eq.Business Alignment');
 
       if (error) throw error;
 
@@ -82,7 +82,7 @@ export const useBusinessAlignmentState = (projectName: string | null, assessment
       if (ratings && ratings.length > 0) {
         const savedAspects = [...initialAspects];
         ratings.forEach(rating => {
-          const practiceName = rating.practice_name.replace('Business:', '');
+          const practiceName = rating.practice_name.replace('Business:', '').trim();
           console.log("Processing rating:", rating.practice_name, "Practice name:", practiceName);
           
           const aspectIndex = savedAspects.findIndex(
