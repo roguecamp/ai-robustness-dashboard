@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BusinessAlignmentGrid } from "@/components/business-alignment/BusinessAlignmentGrid";
 import { BusinessAlignmentHeader } from "@/components/business-alignment/BusinessAlignmentHeader";
-import { useBusinessAlignmentAspects } from "@/hooks/useBusinessAlignmentAspects";
+import { useBusinessAlignmentAspects } from "@/hooks/useBusinessAlignmentState";
 import { calculateOverallRating } from "@/utils/businessAlignmentScoring";
 
 export default function BusinessAlignmentAspects() {
@@ -51,9 +51,9 @@ export default function BusinessAlignmentAspects() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <BusinessAlignmentHeader onBackClick={() => navigate('/')} />
-        <BusinessAlignmentGrid 
+      <div className="max-w-4xl mx-auto space-y-8">
+        <BusinessAlignmentHeader />
+        <BusinessAlignmentGrid
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
