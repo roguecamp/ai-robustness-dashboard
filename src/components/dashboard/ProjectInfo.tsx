@@ -24,6 +24,7 @@ export const ProjectInfo = ({
   setAssessmentDate,
 }: ProjectInfoProps) => {
   const [existingProjects, setExistingProjects] = useState<string[]>([]);
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -52,13 +53,58 @@ export const ProjectInfo = ({
     fetchProjects();
   }, []);
 
+  useEffect(() => {
+    const fetchDates = async () => {
+      if (!projectName || projectName === "__new__") {
+        setAvailableDates([]);
+        return;
+      }
+
+      try {
+        console.log('Fetching dates for project:', projectName);
+        const { data, error } = await supabase
+          .from('ratings')
+          .select('assessment_date')
+          .eq('project_name', projectName)
+          .order('assessment_date', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching dates:', error);
+          toast.error("Failed to load assessment dates");
+          throw error;
+        }
+
+        // Get unique dates
+        const uniqueDates = Array.from(new Set(data.map(row => row.assessment_date)));
+        console.log('Found dates:', uniqueDates);
+        setAvailableDates(uniqueDates);
+
+        // If there are available dates and no current date is selected, set the most recent one
+        if (uniqueDates.length > 0 && (!assessmentDate || !uniqueDates.includes(assessmentDate))) {
+          setAssessmentDate(uniqueDates[0]);
+        }
+      } catch (error) {
+        console.error('Error in fetchDates:', error);
+      }
+    };
+
+    fetchDates();
+  }, [projectName, setAssessmentDate]);
+
+  const handleProjectChange = (value: string) => {
+    setProjectName(value);
+    if (value === "__new__") {
+      setAssessmentDate("");
+    }
+  };
+
   return (
     <div className="mt-4 space-y-4">
       <div>
         <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-1">
           Project Name (max 20 characters)
         </label>
-        <Select value={projectName} onValueChange={setProjectName}>
+        <Select value={projectName} onValueChange={handleProjectChange}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select a project" />
           </SelectTrigger>
@@ -87,13 +133,29 @@ export const ProjectInfo = ({
         <label htmlFor="assessmentDate" className="block text-sm font-medium text-gray-700 mb-1">
           Assessment Date
         </label>
-        <Input
-          id="assessmentDate"
-          type="date"
-          value={assessmentDate}
-          onChange={(e) => setAssessmentDate(e.target.value)}
-          className="max-w-xs"
-        />
+        {availableDates.length > 0 && projectName !== "__new__" ? (
+          <Select value={assessmentDate} onValueChange={setAssessmentDate}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select a date" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableDates.map((date) => (
+                <SelectItem key={date} value={date}>
+                  {date}
+                </SelectItem>
+              ))}
+              <SelectItem value="">New Assessment</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <Input
+            id="assessmentDate"
+            type="date"
+            value={assessmentDate}
+            onChange={(e) => setAssessmentDate(e.target.value)}
+            className="max-w-xs"
+          />
+        )}
       </div>
     </div>
   );
