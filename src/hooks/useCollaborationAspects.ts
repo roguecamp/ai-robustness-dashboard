@@ -54,7 +54,11 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
 
   useEffect(() => {
     const loadRatings = async () => {
-      if (!projectName || !assessmentDate) return;
+      if (!projectName || !assessmentDate) {
+        console.log('Missing project name or date, resetting to initial state');
+        setAspects(initialAspects);
+        return;
+      }
 
       try {
         console.log("Loading collaboration ratings for:", projectName, assessmentDate);
@@ -83,10 +87,14 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
             }
           });
           setAspects(savedAspects);
+        } else {
+          console.log('No existing ratings found, using initial state');
+          setAspects(initialAspects);
         }
       } catch (error) {
         console.error("Error loading collaboration ratings:", error);
         toast.error("Failed to load ratings");
+        setAspects(initialAspects);
       }
     };
 
