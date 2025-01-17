@@ -8,43 +8,43 @@ const initialAspects: IntellectualPropertyAspect[] = [
   {
     name: "IP Policies",
     description: "Clearly defined policies regarding AI-generated content and data.",
-    rating: "Not in Place",
+    rating: null,
     findings: ""
   },
   {
     name: "Contract Clarity",
     description: "Clear contracts regarding IP ownership with third-party vendors.",
-    rating: "Not in Place",
+    rating: null,
     findings: ""
   },
   {
     name: "IP Protection",
     description: "Mechanisms for protecting AI-generated IP.",
-    rating: "Not in Place",
+    rating: null,
     findings: ""
   },
   {
     name: "Licensing Agreements",
     description: "Proper licensing agreements for AI technologies and datasets.",
-    rating: "Not in Place",
+    rating: null,
     findings: ""
   },
   {
     name: "Legal Review",
     description: "Regular legal review of IP issues related to AI.",
-    rating: "Not in Place",
+    rating: null,
     findings: ""
   },
   {
     name: "IP Education",
     description: "Training on IP considerations for relevant stakeholders.",
-    rating: "Not in Place",
+    rating: null,
     findings: ""
   },
   {
     name: "IP Compliance",
     description: "Monitoring and ensuring compliance with IP policies and laws.",
-    rating: "Not in Place",
+    rating: null,
     findings: ""
   }
 ];
