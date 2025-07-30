@@ -1,69 +1,81 @@
-# Welcome to your Lovable project
+# AI Robustness Dashboard
 
-## Project info
+The AI Robustness Dashboard is a tool for assessing and visualizing the robustness of AI systems across key pillars: People, Strategy, Data, Legal, Solution, and Security. It provides a structured way to evaluate the maturity of your AI systems and identify areas for improvement.
 
-**URL**: https://lovable.dev/projects/9169ed6e-0909-49f9-906f-201c44c197d2
+![AI Robustness Dashboard Screenshot](public/images/screenshot.png)
 
-## How can I edit this code?
+## Table of Contents
 
-There are several ways of editing your application.
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
 
-**Use Lovable**
+## Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9169ed6e-0909-49f9-906f-201c44c197d2) and start prompting.
+- **Comprehensive Assessment:** Evaluate your AI systems against a set of key practices in six different pillars.
+- **Visual Dashboard:** Visualize the results of your assessment in an easy-to-understand dashboard.
+- **Data Persistence:** Save your assessments to a Supabase backend and track your progress over time.
+- **Shareable Reports:** Share your assessment results with your team and stakeholders.
 
-Changes made via Lovable will be committed automatically to this repo.
+## Tech Stack
 
-**Use your preferred IDE**
+- [Vite](https://vitejs.dev/)
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Shadcn UI](https://ui.shadcn.com/)
+- [Supabase](https://supabase.io/)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+To get a local copy up and running, follow these simple steps.
 
-Follow these steps:
+### Prerequisites
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [npm](https://www.npmjs.com/)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Installation
 
-# Step 3: Install the necessary dependencies.
-npm i
+1.  Clone the repo
+    ```sh
+    git clone https://github.com/roguecamp/ai-robustness-dashboard.git
+    ```
+2.  Install NPM packages
+    ```sh
+    npm install
+    ```
+3.  Set up your Supabase backend and add your credentials to a `.env.local` file.
+    ```
+    VITE_SUPABASE_URL=your_supabase_url
+    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+    ```
+4.  Run the development server
+    ```sh
+    npm run dev
+    ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## Usage
 
-**Edit a file directly in GitHub**
+1.  Open the application in your browser.
+2.  Create a new project and assessment.
+3.  Rate each of the key practices in the six pillars.
+4.  Save your assessment.
+5.  View your results in the dashboard.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Contributing
 
-**Use GitHub Codespaces**
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
-## What technologies are used for this project?
+## License
 
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/9169ed6e-0909-49f9-906f-201c44c197d2) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+Distributed under the MIT License. See `LICENSE` for more information.
