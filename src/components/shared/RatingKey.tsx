@@ -8,7 +8,7 @@ export const RatingKey = () => {
           <span className="text-sm">Largely in Place</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-green-300"></div>
+          <div className="w-4 h-4 rounded bg-yellow-400"></div>
           <span className="text-sm">Somewhat in Place</span>
         </div>
         <div className="flex items-center gap-2">
