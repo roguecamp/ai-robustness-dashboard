@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { BaseAspect } from "@/types/ratings";
+import { getRatingColor } from "@/utils/ratingUtils";
 
 interface AspectGridProps<T extends BaseAspect> {
   aspects: T[];
@@ -8,19 +9,6 @@ interface AspectGridProps<T extends BaseAspect> {
   onFindingsChange: (index: number, findings: string) => void;
   onOwnersChange?: (index: number, owners: string) => void;
 }
-
-const getRatingColor = (rating: BaseAspect["rating"]) => {
-  switch (rating) {
-    case "Largely in Place":
-      return "bg-green-700 text-white";
-    case "Somewhat in Place":
-      return "bg-yellow-400";
-    case "Not in Place":
-      return "bg-red-300";
-    default:
-      return "bg-gray-100 border border-gray-200";
-  }
-};
 
 export function AspectGrid<T extends BaseAspect>({ 
   aspects, 

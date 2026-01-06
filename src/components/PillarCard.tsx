@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { KeyPractice, RatingLevel, Pillar } from "@/types/ratings";
+import { getRatingColor } from "@/utils/ratingUtils";
 
 interface PillarCardProps extends Pillar {
   className?: string;
@@ -122,18 +123,6 @@ export const PillarCard = ({
     onUpdate(updatedRatings);
   };
 
-  const getRatingColor = (rating: RatingLevel | null) => {
-    switch (rating) {
-      case "Largely in Place":
-        return "bg-green-700 text-white";
-      case "Somewhat in Place":
-        return "bg-yellow-400 text-gray-900";
-      case "Not in Place":
-        return "bg-red-300 text-gray-900";
-      default:
-        return "bg-gray-100 border border-gray-200 text-gray-900";
-    }
-  };
 
   return (
     <div className={cn("rounded-2xl p-6 glass-card transition-all duration-300 hover:shadow-xl", className)}>
