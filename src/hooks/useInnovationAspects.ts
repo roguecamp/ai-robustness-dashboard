@@ -8,43 +8,50 @@ const initialAspects: InnovationAspect[] = [
     name: "Innovation Labs",
     description: "Existence and utilization of innovation labs for testing AI solutions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Agile Methodology",
     description: "Adoption of agile methodologies in AI development cycles.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Proof of Concept (POC) Processes",
     description: "Structured processes for developing and evaluating POCs.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Risk Tolerance",
     description: "Willingness to invest in innovative but risky AI projects.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Idea Generation",
     description: "Processes for generating and evaluating new AI ideas.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Experimentation Culture",
     description: "Encouragement of experimentation and learning from failures.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Scalability Assessments",
     description: "Processes to assess the scalability of innovative solutions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -58,7 +65,7 @@ export const useInnovationAspects = (projectName: string | null, assessmentDate:
       try {
         const { data: ratings, error } = await supabase
           .from('ratings')
-          .select('practice_name, rating, findings')
+          .select('*')
           .eq('project_name', projectName)
           .eq('assessment_date', assessmentDate)
           .eq('pillar_title', 'Strategy')
@@ -72,7 +79,8 @@ export const useInnovationAspects = (projectName: string | null, assessmentDate:
             return {
               ...aspect,
               rating: matchingRating?.rating as InnovationAspect["rating"] || null,
-              findings: matchingRating?.findings || ""
+              findings: matchingRating?.findings || "",
+              owners: (matchingRating as any)?.owners || ""
             };
           });
           setAspects(updatedAspects);
@@ -115,9 +123,19 @@ export const useInnovationAspects = (projectName: string | null, assessmentDate:
     setAspects(updatedAspects);
   };
 
+  const handleOwnersChange = (index: number, owners: string) => {
+    const updatedAspects = [...aspects];
+    updatedAspects[index] = {
+      ...aspects[index],
+      owners
+    };
+    setAspects(updatedAspects);
+  };
+
   return {
     aspects,
     handleAspectClick,
-    handleFindingsChange
+    handleFindingsChange,
+    handleOwnersChange
   };
 };

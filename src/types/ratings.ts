@@ -4,6 +4,15 @@ export interface KeyPractice {
   name: string;
   rating: RatingLevel | null;
   findings: string | null;
+  owners: string | null;
+}
+
+export interface BaseAspect {
+  name: string;
+  description: string;
+  rating: RatingLevel | null;
+  findings: string;
+  owners: string;
 }
 
 export interface Pillar {

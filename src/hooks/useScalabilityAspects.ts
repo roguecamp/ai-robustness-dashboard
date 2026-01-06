@@ -8,43 +8,50 @@ const initialAspects: ScalabilityAspect[] = [
     name: "Data Collection",
     description: "Data Needed is sourced and available",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Quality Metrics",
     description: "Confirm the Data trustworthy to use",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Validation",
     description: "Processes for validating and cleaning data.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Annotation",
     description: "Tools and processes for annotating data, if necessary.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Updates and Relevance",
     description: "Regular updates to ensure data relevance to solutions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Structure",
     description: "Structured and labeling requirements or use of unstructured data",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Source Diversity",
     description: "Variety in data sources to ensure comprehensive data collection.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -58,7 +65,7 @@ export const useScalabilityAspects = (projectName: string | null, assessmentDate
       try {
         const { data: ratings, error } = await supabase
           .from('ratings')
-          .select('practice_name, rating, findings')
+          .select('*')
           .eq('project_name', projectName)
           .eq('assessment_date', assessmentDate)
           .eq('pillar_title', 'Strategy')
@@ -72,7 +79,8 @@ export const useScalabilityAspects = (projectName: string | null, assessmentDate
             return {
               ...aspect,
               rating: matchingRating?.rating as ScalabilityAspect["rating"] || null,
-              findings: matchingRating?.findings || ""
+              findings: matchingRating?.findings || "",
+              owners: (matchingRating as any)?.owners || ""
             };
           });
           setAspects(updatedAspects);
@@ -115,9 +123,19 @@ export const useScalabilityAspects = (projectName: string | null, assessmentDate
     setAspects(updatedAspects);
   };
 
+  const handleOwnersChange = (index: number, owners: string) => {
+    const updatedAspects = [...aspects];
+    updatedAspects[index] = {
+      ...aspects[index],
+      owners
+    };
+    setAspects(updatedAspects);
+  };
+
   return {
     aspects,
     handleAspectClick,
-    handleFindingsChange
+    handleFindingsChange,
+    handleOwnersChange
   };
 };

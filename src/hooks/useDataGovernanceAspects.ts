@@ -8,43 +8,50 @@ const initialAspects: DataGovernanceAspect[] = [
     name: "Governance Framework",
     description: "Established data governance framework with clear policies and procedures.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Ownership",
     description: "Defined data ownership and stewardship roles.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Metadata Management",
     description: "Effective metadata management for data discoverability and understanding.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Quality Management",
     description: "Processes to ensure and enhance data quality.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Lifecycle Management",
     description: "Managing data throughout its lifecycle from collection to deletion.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Governance Tools",
     description: "Tools to enforce data governance policies.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Compliance Monitoring",
     description: "Monitoring and ensuring compliance with data governance policies.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -63,7 +70,7 @@ export const useDataGovernanceAspects = (projectName: string | null, assessmentD
         console.log("Loading data governance ratings for:", projectName, assessmentDate);
         const { data: ratings, error } = await supabase
           .from("ratings")
-          .select("practice_name, rating, findings")
+          .select("*")
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Data")
@@ -78,7 +85,8 @@ export const useDataGovernanceAspects = (projectName: string | null, assessmentD
             return {
               ...aspect,
               rating: matchingRating?.rating as DataGovernanceAspect["rating"] || null,
-              findings: matchingRating?.findings || ""
+              findings: matchingRating?.findings || "",
+              owners: (matchingRating as any)?.owners || ""
             };
           });
           setAspects(updatedAspects);
@@ -123,10 +131,20 @@ export const useDataGovernanceAspects = (projectName: string | null, assessmentD
     setAspects(updatedAspects);
   };
 
+  const handleOwnersChange = (index: number, owners: string) => {
+    const updatedAspects = [...aspects];
+    updatedAspects[index] = {
+      ...aspects[index],
+      owners
+    };
+    setAspects(updatedAspects);
+  };
+
   return {
     aspects,
     isLoading,
     handleAspectClick,
-    handleFindingsChange
+    handleFindingsChange,
+    handleOwnersChange
   };
 };

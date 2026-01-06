@@ -8,43 +8,50 @@ const initialAspects: EthicalConsiderationsAspect[] = [
     name: "Ethics Guidelines",
     description: "Defined and communicated AI ethics guidelines.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Ethics Board",
     description: "An established board to review and approve AI projects for ethical considerations.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Ethical Training",
     description: "Training on AI ethics for relevant stakeholders.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Ethical Audits",
     description: "Regular audits to ensure AI solutions adhere to ethical guidelines.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Bias Mitigation",
     description: "Processes to identify and mitigate unintentional biases in AI systems.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Transparency",
     description: "Transparency to stakeholders on how AI systems operate and make decisions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Public Engagement",
     description: "Engagement with the public or external experts on AI ethics.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -58,7 +65,7 @@ export const useEthicalConsiderationsAspects = (projectName: string | null, asse
       try {
         const { data: ratings, error } = await supabase
           .from("ratings")
-          .select("practice_name, rating, findings")
+          .select("*")
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Legal")
@@ -72,7 +79,8 @@ export const useEthicalConsiderationsAspects = (projectName: string | null, asse
             return {
               ...aspect,
               rating: matchingRating?.rating as EthicalConsiderationsAspect["rating"] || null,
-              findings: matchingRating?.findings || ""
+              findings: matchingRating?.findings || "",
+              owners: (matchingRating as any)?.owners || ""
             };
           });
           setAspects(updatedAspects);
@@ -115,9 +123,19 @@ export const useEthicalConsiderationsAspects = (projectName: string | null, asse
     setAspects(updatedAspects);
   };
 
+  const handleOwnersChange = (index: number, owners: string) => {
+    const updatedAspects = [...aspects];
+    updatedAspects[index] = {
+      ...aspects[index],
+      owners
+    };
+    setAspects(updatedAspects);
+  };
+
   return {
     aspects,
     handleAspectClick,
-    handleFindingsChange
+    handleFindingsChange,
+    handleOwnersChange
   };
 };

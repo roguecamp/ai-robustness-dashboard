@@ -8,43 +8,50 @@ const initialAspects: DataPrivacyAspect[] = [
     name: "Privacy Policies",
     description: "Established and communicated data privacy policies.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Privacy Measures",
     description: "Categorize levels of data privacy.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Compliance with Laws",
     description: "Compliance with data protection laws and regulations (e.g., GDPR, CCPA).",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Encryption",
     description: "Encryption of sensitive data both in transit and at rest.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Access Controls",
     description: "Role-based access controls to restrict data access.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Privacy Auditing",
     description: "Test for or scan potential privacy issues in your data.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Incident Response",
     description: "Effective incident response plans for data breaches compromising privacy.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -58,7 +65,7 @@ export const useDataPrivacyAspects = (projectName: string | null, assessmentDate
       try {
         const { data: ratings, error } = await supabase
           .from("ratings")
-          .select("practice_name, rating, findings")
+          .select("*")
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Data")
@@ -72,7 +79,8 @@ export const useDataPrivacyAspects = (projectName: string | null, assessmentDate
             return {
               ...aspect,
               rating: matchingRating?.rating as DataPrivacyAspect["rating"] || null,
-              findings: matchingRating?.findings || ""
+              findings: matchingRating?.findings || "",
+              owners: (matchingRating as any)?.owners || ""
             };
           });
           setAspects(updatedAspects);
@@ -115,9 +123,19 @@ export const useDataPrivacyAspects = (projectName: string | null, assessmentDate
     setAspects(updatedAspects);
   };
 
+  const handleOwnersChange = (index: number, owners: string) => {
+    const updatedAspects = [...aspects];
+    updatedAspects[index] = {
+      ...aspects[index],
+      owners
+    };
+    setAspects(updatedAspects);
+  };
+
   return {
     aspects,
     handleAspectClick,
-    handleFindingsChange
+    handleFindingsChange,
+    handleOwnersChange
   };
 };
