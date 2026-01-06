@@ -13,43 +13,50 @@ const initialAspects: InfrastructureAspect[] = [
     name: "Scalable Infrastructure",
     description: "Infrastructure that can scale with growing AI needs.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Performance Monitoring",
     description: "Tools and processes to monitor infrastructure performance.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Resource Allocation",
     description: "Adequate allocation of resources (e.g., computing, storage).",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Cost Management",
     description: "Monitoring and managing infrastructure costs.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Cloud Adoption",
     description: "Leveraging cloud resources for better scalability and performance.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Security Measures",
     description: "Security measures to protect infrastructure.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Disaster Recovery",
     description: "Effective disaster recovery and backup solutions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
 ];
 
