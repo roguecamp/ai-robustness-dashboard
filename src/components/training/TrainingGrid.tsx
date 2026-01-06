@@ -5,9 +5,10 @@ interface TrainingGridProps {
   aspects: TrainingAspect[];
   onAspectClick: (index: number) => void;
   onFindingsChange: (index: number, findings: string) => void;
+  onOwnersChange: (index: number, owners: string) => void;
 }
 
-export const TrainingGrid = ({ aspects, onAspectClick, onFindingsChange }: TrainingGridProps) => {
+export const TrainingGrid = ({ aspects, onAspectClick, onFindingsChange, onOwnersChange }: TrainingGridProps) => {
   return (
     <div className="grid gap-4">
       {aspects.map((aspect, index) => (
@@ -16,6 +17,7 @@ export const TrainingGrid = ({ aspects, onAspectClick, onFindingsChange }: Train
           aspect={aspect}
           onClick={() => onAspectClick(index)}
           onFindingsChange={(findings) => onFindingsChange(index, findings)}
+          onOwnersChange={(owners) => onOwnersChange(index, owners)}
         />
       ))}
     </div>

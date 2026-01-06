@@ -90,7 +90,8 @@ export default function DataGovernanceAspects() {
           return {
             ...aspect,
             rating: rating?.rating as DataGovernanceAspect["rating"] || null,
-            findings: rating?.findings || ""
+            findings: rating?.findings || "",
+            owners: rating?.owners || ""
           };
         });
         setAspects(updatedAspects);
@@ -175,9 +176,41 @@ export default function DataGovernanceAspects() {
     }
   };
 
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Data",
+          practice_name: `DataGovernance:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], owners };
+      setAspects(newAspects);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">Data Governance Aspects</h1>
@@ -190,6 +223,7 @@ export default function DataGovernanceAspects() {
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
+          onOwnersChange={handleOwnersChange}
         />
 
         <div className="flex justify-end">

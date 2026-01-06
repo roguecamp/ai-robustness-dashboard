@@ -75,7 +75,7 @@ const DataAcquisitionAspects = () => {
       try {
         const { data: ratings, error } = await supabase
           .from('ratings')
-          .select('practice_name, rating, findings')
+          .select('practice_name, rating, findings, owners')
           .eq('project_name', projectName)
           .eq('assessment_date', assessmentDate)
           .eq('pillar_title', 'Data')
@@ -89,7 +89,8 @@ const DataAcquisitionAspects = () => {
             return {
               ...aspect,
               rating: matchingRating?.rating as DataAcquisitionAspect["rating"] || null,
-              findings: matchingRating?.findings || ""
+              findings: matchingRating?.findings || "",
+              owners: matchingRating?.owners || ""
             };
           });
           setAspects(updatedAspects);
@@ -128,7 +129,8 @@ const DataAcquisitionAspects = () => {
           pillar_title: 'Data',
           practice_name: `Data Acquisition:${aspects[index].name}`,
           rating: nextRating,
-          findings: aspects[index].findings
+          findings: aspects[index].findings,
+          owners: aspects[index].owners
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
@@ -159,7 +161,8 @@ const DataAcquisitionAspects = () => {
           pillar_title: 'Data',
           practice_name: `Data Acquisition:${aspects[index].name}`,
           rating: aspects[index].rating,
-          findings: findings
+          findings: findings,
+          owners: aspects[index].owners
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
@@ -172,6 +175,38 @@ const DataAcquisitionAspects = () => {
     } catch (error) {
       console.error("Error updating findings:", error);
       toast.error("Failed to update findings");
+    }
+  };
+
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error: aspectError } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Data',
+          practice_name: `Data Acquisition:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], owners };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
     }
   };
 
@@ -208,7 +243,7 @@ const DataAcquisitionAspects = () => {
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Data Acquisition and Quality Aspects</h1>
@@ -224,6 +259,7 @@ const DataAcquisitionAspects = () => {
               aspect={aspect}
               onClick={() => handleAspectClick(index)}
               onFindingsChange={(findings) => handleFindingsChange(index, findings)}
+              onOwnersChange={(owners) => handleOwnersChange(index, owners)}
             />
           ))}
         </div>

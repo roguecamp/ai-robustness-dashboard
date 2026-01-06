@@ -109,6 +109,38 @@ const DeploymentMonitoringAspects = () => {
     }
   };
 
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Missing project information");
+      return;
+    }
+
+    const updatedAspects = [...aspects];
+    updatedAspects[index] = { ...aspects[index], owners };
+    setAspects(updatedAspects);
+
+    try {
+      const { error } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Solution',
+          practice_name: `DeploymentMonitoring:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to save owners");
+    }
+  };
+
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
       toast.error("Missing project information");
@@ -116,7 +148,6 @@ const DeploymentMonitoringAspects = () => {
     }
 
     try {
-      // Save individual aspect ratings
       for (const aspect of aspects) {
         const { error: aspectError } = await supabase
           .from('ratings')
@@ -126,7 +157,8 @@ const DeploymentMonitoringAspects = () => {
             pillar_title: 'Solution',
             practice_name: `DeploymentMonitoring:${aspect.name}`,
             rating: aspect.rating,
-            findings: aspect.findings
+            findings: aspect.findings,
+            owners: aspect.owners
           }, {
             onConflict: 'project_name,assessment_date,pillar_title,practice_name'
           });
@@ -134,7 +166,6 @@ const DeploymentMonitoringAspects = () => {
         if (aspectError) throw aspectError;
       }
 
-      // Calculate and save the overall rating
       const overallRating = calculateOverallRating(aspects);
       
       const { error } = await supabase
@@ -161,7 +192,7 @@ const DeploymentMonitoringAspects = () => {
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Deployment and Monitoring Aspects</h1>
@@ -174,6 +205,7 @@ const DeploymentMonitoringAspects = () => {
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
+          onOwnersChange={handleOwnersChange}
         />
 
         <div className="flex justify-end space-x-4">

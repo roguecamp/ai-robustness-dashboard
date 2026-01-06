@@ -13,7 +13,7 @@ const TrainingAspects = () => {
   const projectName = queryParams.get('project');
   const assessmentDate = queryParams.get('date');
   
-  const { aspects, handleAspectClick, handleFindingsChange } = useTrainingAspects(projectName, assessmentDate);
+  const { aspects, handleAspectClick, handleFindingsChange, handleOwnersChange } = useTrainingAspects(projectName, assessmentDate);
 
   const calculateOverallRating = () => {
     const ratingScores = {
@@ -101,6 +101,7 @@ const TrainingAspects = () => {
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
+          onOwnersChange={handleOwnersChange}
         />
         <div className="flex justify-end">
           <Button onClick={handleSave}>Save Overall Rating</Button>
