@@ -5,50 +5,50 @@ import type { ScalabilityAspect } from "@/types/scalability";
 
 const initialAspects: ScalabilityAspect[] = [
   {
-    name: "Data Collection",
-    description: "Data Needed is sourced and available",
+    name: "Scalability Planning",
+    description: "Strategies and plans for scaling AI solutions across the organization.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Data Quality Metrics",
-    description: "Confirm the Data trustworthy to use",
+    name: "Resource Allocation",
+    description: "Adequate allocation of resources (budget, personnel, infrastructure) for scaling.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Data Validation",
-    description: "Processes for validating and cleaning data.",
+    name: "Adoption Metrics",
+    description: "Metrics to track and measure AI adoption across business units.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Data Annotation",
-    description: "Tools and processes for annotating data, if necessary.",
+    name: "Change Readiness",
+    description: "Organization's readiness to adopt and scale AI solutions.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Data Updates and Relevance",
-    description: "Regular updates to ensure data relevance to solutions.",
+    name: "Integration Capabilities",
+    description: "Ability to integrate AI solutions with existing systems and workflows.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Data Structure",
-    description: "Structured and labeling requirements or use of unstructured data",
+    name: "Pilot Programs",
+    description: "Effectiveness of pilot programs in validating scalability.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Source Diversity",
-    description: "Variety in data sources to ensure comprehensive data collection.",
+    name: "Enterprise Rollout",
+    description: "Plans and processes for enterprise-wide AI solution deployment.",
     rating: null,
     findings: "",
     owners: ""
@@ -60,7 +60,10 @@ export const useScalabilityAspects = (projectName: string | null, assessmentDate
 
   useEffect(() => {
     const loadAspectRatings = async () => {
-      if (!projectName || !assessmentDate) return;
+      if (!projectName || !assessmentDate) {
+        setAspects(initialAspects);
+        return;
+      }
 
       try {
         const { data: ratings, error } = await supabase
@@ -74,62 +77,133 @@ export const useScalabilityAspects = (projectName: string | null, assessmentDate
         if (error) throw error;
 
         if (ratings && ratings.length > 0) {
-          const updatedAspects = aspects.map(aspect => {
+          const updatedAspects = initialAspects.map(aspect => {
             const matchingRating = ratings.find(r => r.practice_name === `Scalability:${aspect.name}`);
             return {
               ...aspect,
               rating: matchingRating?.rating as ScalabilityAspect["rating"] || null,
               findings: matchingRating?.findings || "",
-              owners: (matchingRating as any)?.owners || ""
+              owners: matchingRating?.owners || ""
             };
           });
           setAspects(updatedAspects);
+        } else {
+          setAspects(initialAspects);
         }
       } catch (error) {
         console.error("Error loading ratings:", error);
         toast.error("Failed to load aspect ratings");
+        setAspects(initialAspects);
       }
     };
 
     loadAspectRatings();
   }, [projectName, assessmentDate]);
 
-  const handleAspectClick = (index: number) => {
+  const handleAspectClick = async (index: number) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     const ratings: ScalabilityAspect["rating"][] = [
       "Largely in Place",
       "Somewhat in Place",
       "Not in Place"
     ];
     
-    const updatedAspects = [...aspects];
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
-    const nextIndex = (currentIndex + 1) % ratings.length;
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
-    updatedAspects[index] = {
-      ...aspects[index],
-      rating: ratings[nextIndex]
-    };
-    
-    setAspects(updatedAspects);
+    try {
+      const { error } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Strategy',
+          practice_name: `Scalability:${aspects[index].name}`,
+          rating: nextRating,
+          findings: aspects[index].findings,
+          owners: aspects[index].owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], rating: nextRating };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
   };
 
-  const handleFindingsChange = (index: number, findings: string) => {
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      findings
-    };
-    setAspects(updatedAspects);
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Strategy',
+          practice_name: `Scalability:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings,
+          owners: aspects[index].owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], findings };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
+    }
   };
 
-  const handleOwnersChange = (index: number, owners: string) => {
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      owners
-    };
-    setAspects(updatedAspects);
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Strategy',
+          practice_name: `Scalability:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], owners };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
   };
 
   return {

@@ -12,7 +12,7 @@ const ComplianceRegulationAspects = () => {
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
   
-  const { aspects, handleAspectClick, handleFindingsChange } = useComplianceRegulationAspects(projectName, assessmentDate);
+  const { aspects, handleAspectClick, handleFindingsChange, handleOwnersChange } = useComplianceRegulationAspects(projectName, assessmentDate);
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
@@ -81,6 +81,7 @@ const ComplianceRegulationAspects = () => {
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
+          onOwnersChange={handleOwnersChange}
         />
 
         <div className="flex justify-end">

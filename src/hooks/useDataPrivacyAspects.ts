@@ -60,7 +60,10 @@ export const useDataPrivacyAspects = (projectName: string | null, assessmentDate
 
   useEffect(() => {
     const loadAspectRatings = async () => {
-      if (!projectName || !assessmentDate) return;
+      if (!projectName || !assessmentDate) {
+        setAspects(initialAspects);
+        return;
+      }
 
       try {
         const { data: ratings, error } = await supabase
@@ -74,27 +77,35 @@ export const useDataPrivacyAspects = (projectName: string | null, assessmentDate
         if (error) throw error;
 
         if (ratings && ratings.length > 0) {
-          const updatedAspects = aspects.map(aspect => {
+          const updatedAspects = initialAspects.map(aspect => {
             const matchingRating = ratings.find(r => r.practice_name === `DataPrivacy:${aspect.name}`);
             return {
               ...aspect,
               rating: matchingRating?.rating as DataPrivacyAspect["rating"] || null,
               findings: matchingRating?.findings || "",
-              owners: (matchingRating as any)?.owners || ""
+              owners: matchingRating?.owners || ""
             };
           });
           setAspects(updatedAspects);
+        } else {
+          setAspects(initialAspects);
         }
       } catch (error) {
         console.error("Error loading ratings:", error);
         toast.error("Failed to load aspect ratings");
+        setAspects(initialAspects);
       }
     };
 
     loadAspectRatings();
   }, [projectName, assessmentDate]);
 
-  const handleAspectClick = (index: number) => {
+  const handleAspectClick = async (index: number) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     const ratings: DataPrivacyAspect["rating"][] = [
       "Largely in Place",
       "Somewhat in Place",
@@ -105,31 +116,94 @@ export const useDataPrivacyAspects = (projectName: string | null, assessmentDate
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      rating: nextRating
-    };
-    
-    setAspects(updatedAspects);
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Data",
+          practice_name: `DataPrivacy:${aspects[index].name}`,
+          rating: nextRating,
+          findings: aspects[index].findings,
+          owners: aspects[index].owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], rating: nextRating };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
   };
 
-  const handleFindingsChange = (index: number, findings: string) => {
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      findings
-    };
-    setAspects(updatedAspects);
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Data",
+          practice_name: `DataPrivacy:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings,
+          owners: aspects[index].owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], findings };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
+    }
   };
 
-  const handleOwnersChange = (index: number, owners: string) => {
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      owners
-    };
-    setAspects(updatedAspects);
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Data",
+          practice_name: `DataPrivacy:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], owners };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
   };
 
   return {

@@ -12,7 +12,7 @@ const InnovationAspects = () => {
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
   
-  const { aspects, handleAspectClick, handleFindingsChange } = useInnovationAspects(projectName, assessmentDate);
+  const { aspects, handleAspectClick, handleFindingsChange, handleOwnersChange } = useInnovationAspects(projectName, assessmentDate);
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
@@ -65,6 +65,7 @@ const InnovationAspects = () => {
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
+          onOwnersChange={handleOwnersChange}
         />
 
         <div className="flex justify-end space-x-4">
