@@ -9,43 +9,50 @@ const initialAspects: CollaborationAspect[] = [
     name: "Interdisciplinary Teams",
     description: "Existance and effectiveness of cross-functional teams.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "External Partnerships",
     description: "Relationships with external AI consultants, vendors, and academic institutions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Collaboration Tools",
     description: "Availability and utilization of collaboration tools",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Knowledge Sharing",
     description: "Platforms and practices for sharing AI knowledge across the organization",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Project Management",
     description: "Effectiuveness in managing AI projects across different teams.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Innovation Culture",
     description: "Encouragement and support for innovative ideas and experimentation.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Feedback Loops",
     description: "Mechanisms for collecting and acting on feedback from various stakeholders.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -84,6 +91,7 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
             if (aspectIndex !== -1) {
               savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
               savedAspects[aspectIndex].findings = rating.findings || "";
+              savedAspects[aspectIndex].owners = (rating as any).owners || "";
             }
           });
           setAspects(savedAspects);
@@ -126,7 +134,8 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
           pillar_title: "People",
           practice_name: `Collaboration:${aspects[index].name}`,
           rating: nextRating,
-          findings: aspects[index].findings
+          findings: aspects[index].findings,
+          owners: aspects[index].owners
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
@@ -159,7 +168,8 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
           pillar_title: "People",
           practice_name: `Collaboration:${aspects[index].name}`,
           rating: aspects[index].rating,
-          findings: findings
+          findings: findings,
+          owners: aspects[index].owners
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
@@ -177,10 +187,45 @@ export const useCollaborationAspects = (projectName: string | null, assessmentDa
     }
   };
 
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "People",
+          practice_name: `Collaboration:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], owners };
+      setAspects(newAspects);
+
+      console.log(`Updated owners for ${aspects[index].name}`);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
+  };
+
   return {
     aspects,
     handleAspectClick,
     handleFindingsChange,
+    handleOwnersChange,
     setAspects
   };
 };

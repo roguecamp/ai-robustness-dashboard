@@ -15,7 +15,7 @@ export const useTrainingAspects = (projectName: string | null, assessmentDate: s
       try {
         const { data: ratings, error } = await supabase
           .from('ratings')
-          .select('practice_name, rating, findings')
+          .select('*')
           .eq('project_name', projectName)
           .eq('assessment_date', assessmentDate)
           .eq('pillar_title', 'People')
@@ -29,7 +29,8 @@ export const useTrainingAspects = (projectName: string | null, assessmentDate: s
             return {
               ...aspect,
               rating: matchingRating?.rating as RatingLevel || null,
-              findings: matchingRating?.findings || ""
+              findings: matchingRating?.findings || "",
+              owners: (matchingRating as any)?.owners || ""
             };
           });
           setAspects(updatedAspects);
@@ -72,10 +73,20 @@ export const useTrainingAspects = (projectName: string | null, assessmentDate: s
     setAspects(updatedAspects);
   };
 
+  const handleOwnersChange = (index: number, owners: string) => {
+    const updatedAspects = [...aspects];
+    updatedAspects[index] = {
+      ...aspects[index],
+      owners
+    };
+    setAspects(updatedAspects);
+  };
+
   return {
     aspects,
     handleAspectClick,
     handleFindingsChange,
+    handleOwnersChange,
     setAspects
   };
 };

@@ -5,4 +5,5 @@ export interface DataAcquisitionAspect {
   description: string;
   rating: RatingLevel | null;
   findings: string;
+  owners: string;
 }

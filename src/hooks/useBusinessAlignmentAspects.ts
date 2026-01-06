@@ -9,43 +9,50 @@ const initialAspects: BusinessAlignmentAspect[] = [
     name: "Business Objectives",
     description: "Clear definition of how AI aligns with overall business objectives.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Value Proposition",
     description: "Demonstrated value provided by Generative AI solutions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "ROI Measurement",
     description: "Metrics and methods for measuring ROI of AI initiatives.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Alignment Meetings",
     description: "Regular alignment meetings between AI teams and business stakeholders.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Use Case Identification",
     description: "Effective processes for identifying and prioritizing AI use cases.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "AI Roadmap",
     description: "A well-defined roadmap detailing AI implementation phases.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Stakeholder Buy-in",
     description: "Level of support from key stakeholders across the organization.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -79,6 +86,7 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
               const typedRating = rating.rating as RatingLevel;
               savedAspects[aspectIndex].rating = typedRating;
               savedAspects[aspectIndex].findings = rating.findings || "";
+              savedAspects[aspectIndex].owners = (rating as any).owners || "";
             }
           });
           setAspects(savedAspects);
@@ -114,10 +122,17 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     setAspects(newAspects);
   };
 
+  const handleOwnersChange = (index: number, owners: string) => {
+    const newAspects = [...aspects];
+    newAspects[index] = { ...aspects[index], owners };
+    setAspects(newAspects);
+  };
+
   return {
     aspects,
     handleAspectClick,
     handleFindingsChange,
+    handleOwnersChange,
     setAspects
   };
 };

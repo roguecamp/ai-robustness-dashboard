@@ -8,43 +8,50 @@ const initialAspects: ComplianceRegulationAspect[] = [
     name: "Regulatory Awareness",
     description: "Staying updated on local and global AI regulations.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Compliance Monitoring",
     description: "Processes to ensure AI solutions are compliant with relevant regulations.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Legal Support",
     description: "Access to legal support for AI compliance and regulation issues.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Documentation",
     description: "Proper documentation for AI systems to demonstrate compliance.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Regulatory Engagement",
     description: "Engaging with regulatory bodies and participating in industry groups.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Audit Trails",
     description: "Maintaining audit trails for critical AI decisions and actions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Reporting Mechanisms",
     description: "Effective reporting mechanisms to report compliance status to stakeholders.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -58,7 +65,7 @@ export const useComplianceRegulationAspects = (projectName: string | null, asses
       try {
         const { data: ratings, error } = await supabase
           .from("ratings")
-          .select("practice_name, rating, findings")
+          .select("*")
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Legal")
@@ -72,7 +79,8 @@ export const useComplianceRegulationAspects = (projectName: string | null, asses
             return {
               ...aspect,
               rating: matchingRating?.rating as ComplianceRegulationAspect["rating"] || null,
-              findings: matchingRating?.findings || ""
+              findings: matchingRating?.findings || "",
+              owners: (matchingRating as any)?.owners || ""
             };
           });
           setAspects(updatedAspects);
@@ -115,9 +123,19 @@ export const useComplianceRegulationAspects = (projectName: string | null, asses
     setAspects(updatedAspects);
   };
 
+  const handleOwnersChange = (index: number, owners: string) => {
+    const updatedAspects = [...aspects];
+    updatedAspects[index] = {
+      ...aspects[index],
+      owners
+    };
+    setAspects(updatedAspects);
+  };
+
   return {
     aspects,
     handleAspectClick,
-    handleFindingsChange
+    handleFindingsChange,
+    handleOwnersChange
   };
 };

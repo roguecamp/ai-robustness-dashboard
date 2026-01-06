@@ -9,43 +9,50 @@ const initialAspects: IntellectualPropertyAspect[] = [
     name: "IP Policies",
     description: "Clearly defined policies regarding AI-generated content and data.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Contract Clarity",
     description: "Clear contracts regarding IP ownership with third-party vendors.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "IP Protection",
     description: "Mechanisms for protecting AI-generated IP.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Licensing Agreements",
     description: "Proper licensing agreements for AI technologies and datasets.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Legal Review",
     description: "Regular legal review of IP issues related to AI.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "IP Education",
     description: "Training on IP considerations for relevant stakeholders.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "IP Compliance",
     description: "Monitoring and ensuring compliance with IP policies and laws.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -80,6 +87,7 @@ export const useIntellectualPropertyAspects = (projectName: string | null, asses
             if (aspectIndex !== -1) {
               savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
               savedAspects[aspectIndex].findings = rating.findings || "";
+              savedAspects[aspectIndex].owners = (rating as any).owners || "";
             }
           });
           setAspects(savedAspects);
@@ -118,7 +126,8 @@ export const useIntellectualPropertyAspects = (projectName: string | null, asses
           pillar_title: "Legal",
           practice_name: `IntellectualProperty:${aspects[index].name}`,
           rating: nextRating,
-          findings: aspects[index].findings
+          findings: aspects[index].findings,
+          owners: aspects[index].owners
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
@@ -151,7 +160,8 @@ export const useIntellectualPropertyAspects = (projectName: string | null, asses
           pillar_title: "Legal",
           practice_name: `IntellectualProperty:${aspects[index].name}`,
           rating: aspects[index].rating,
-          findings: findings
+          findings: findings,
+          owners: aspects[index].owners
         }, {
           onConflict: 'project_name,assessment_date,pillar_title,practice_name'
         });
@@ -169,10 +179,45 @@ export const useIntellectualPropertyAspects = (projectName: string | null, asses
     }
   };
 
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Legal",
+          practice_name: `IntellectualProperty:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], owners };
+      setAspects(newAspects);
+
+      console.log(`Updated owners for ${aspects[index].name}`);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
+  };
+
   return {
     aspects,
     handleAspectClick,
     handleFindingsChange,
+    handleOwnersChange,
     setAspects
   };
 };

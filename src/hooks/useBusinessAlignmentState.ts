@@ -9,43 +9,50 @@ const initialAspects: BusinessAlignmentAspect[] = [
     name: "Business Objectives",
     description: "Clear definition of how AI aligns with overall business objectives.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Value Proposition",
     description: "Demonstrated value provided by Generative AI solutions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "ROI Measurement",
     description: "Metrics and methods for measuring ROI of AI initiatives.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Alignment Meetings",
     description: "Regular alignment meetings between AI teams and business stakeholders.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Use Case Identification",
     description: "Effective processes for identifying and prioritizing AI use cases.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "AI Roadmap",
     description: "A well-defined roadmap detailing AI implementation phases.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Stakeholder Buy-in",
     description: "Level of support from key stakeholders across the organization.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -83,7 +90,8 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
               savedAspects[aspectIndex] = {
                 ...savedAspects[aspectIndex],
                 rating: rating.rating as RatingLevel || null,
-                findings: rating.findings || ""
+                findings: rating.findings || "",
+                owners: (rating as any).owners || ""
               };
             }
           });
@@ -115,7 +123,6 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
     try {
-      // First try to find if the record exists
       const { data: existingData, error: selectError } = await supabase
         .from("ratings")
         .select("*")
@@ -123,19 +130,19 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
         .eq("practice_name", `Business:${aspects[index].name}`)
-        .maybeSingle(); // Changed from .single() to .maybeSingle()
+        .maybeSingle();
 
       if (selectError && selectError.code !== 'PGRST116') {
         throw selectError;
       }
 
       if (existingData) {
-        // Update existing record
         const { error: updateError } = await supabase
           .from("ratings")
           .update({
             rating: nextRating,
-            findings: aspects[index].findings
+            findings: aspects[index].findings,
+            owners: aspects[index].owners
           })
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
@@ -144,7 +151,6 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
 
         if (updateError) throw updateError;
       } else {
-        // Insert new record
         const { error: insertError } = await supabase
           .from("ratings")
           .insert({
@@ -153,7 +159,8 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
             pillar_title: "Strategy",
             practice_name: `Business:${aspects[index].name}`,
             rating: nextRating,
-            findings: aspects[index].findings
+            findings: aspects[index].findings,
+            owners: aspects[index].owners
           });
 
         if (insertError) throw insertError;
@@ -177,7 +184,6 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     }
 
     try {
-      // First try to find if the record exists
       const { data: existingData, error: selectError } = await supabase
         .from("ratings")
         .select("*")
@@ -185,19 +191,19 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
         .eq("assessment_date", assessmentDate)
         .eq("pillar_title", "Strategy")
         .eq("practice_name", `Business:${aspects[index].name}`)
-        .maybeSingle(); // Changed from .single() to .maybeSingle()
+        .maybeSingle();
 
       if (selectError && selectError.code !== 'PGRST116') {
         throw selectError;
       }
 
       if (existingData) {
-        // Update existing record
         const { error: updateError } = await supabase
           .from("ratings")
           .update({
             findings: findings,
-            rating: aspects[index].rating
+            rating: aspects[index].rating,
+            owners: aspects[index].owners
           })
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
@@ -206,7 +212,6 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
 
         if (updateError) throw updateError;
       } else {
-        // Insert new record
         const { error: insertError } = await supabase
           .from("ratings")
           .insert({
@@ -215,7 +220,8 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
             pillar_title: "Strategy",
             practice_name: `Business:${aspects[index].name}`,
             rating: aspects[index].rating,
-            findings: findings
+            findings: findings,
+            owners: aspects[index].owners
           });
 
         if (insertError) throw insertError;
@@ -232,9 +238,71 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     }
   };
 
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { data: existingData, error: selectError } = await supabase
+        .from("ratings")
+        .select("*")
+        .eq("project_name", projectName)
+        .eq("assessment_date", assessmentDate)
+        .eq("pillar_title", "Strategy")
+        .eq("practice_name", `Business:${aspects[index].name}`)
+        .maybeSingle();
+
+      if (selectError && selectError.code !== 'PGRST116') {
+        throw selectError;
+      }
+
+      if (existingData) {
+        const { error: updateError } = await supabase
+          .from("ratings")
+          .update({
+            owners: owners,
+            rating: aspects[index].rating,
+            findings: aspects[index].findings
+          })
+          .eq("project_name", projectName)
+          .eq("assessment_date", assessmentDate)
+          .eq("pillar_title", "Strategy")
+          .eq("practice_name", `Business:${aspects[index].name}`);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("ratings")
+          .insert({
+            project_name: projectName,
+            assessment_date: assessmentDate,
+            pillar_title: "Strategy",
+            practice_name: `Business:${aspects[index].name}`,
+            rating: aspects[index].rating,
+            findings: aspects[index].findings,
+            owners: owners
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], owners };
+      setAspects(newAspects);
+
+      console.log(`Updated owners for ${aspects[index].name}`);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
+  };
+
   return {
     aspects,
     handleAspectClick,
     handleFindingsChange,
+    handleOwnersChange,
   };
 };
