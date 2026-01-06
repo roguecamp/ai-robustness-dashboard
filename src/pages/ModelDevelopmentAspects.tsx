@@ -126,6 +126,38 @@ const ModelDevelopmentAspects = () => {
     }
   };
 
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'Solution',
+          practice_name: `ModelDevelopment:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], owners };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
+  };
+
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
       toast.error("Missing project information");
@@ -134,7 +166,6 @@ const ModelDevelopmentAspects = () => {
 
     try {
       const overallRating = calculateOverallRating(aspects);
-      console.log('Saving overall Model Development rating:', overallRating);
       
       const { error } = await supabase
         .from('ratings')
@@ -160,7 +191,7 @@ const ModelDevelopmentAspects = () => {
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Model Development and Training Aspects</h1>
@@ -173,6 +204,7 @@ const ModelDevelopmentAspects = () => {
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
+          onOwnersChange={handleOwnersChange}
         />
 
         <div className="flex justify-end space-x-4">

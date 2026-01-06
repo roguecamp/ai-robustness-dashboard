@@ -5,9 +5,10 @@ interface ModelDevelopmentGridProps {
   aspects: ModelDevelopmentAspect[];
   onAspectClick: (index: number) => void;
   onFindingsChange: (index: number, findings: string) => void;
+  onOwnersChange: (index: number, owners: string) => void;
 }
 
-export const ModelDevelopmentGrid = ({ aspects, onAspectClick, onFindingsChange }: ModelDevelopmentGridProps) => {
+export const ModelDevelopmentGrid = ({ aspects, onAspectClick, onFindingsChange, onOwnersChange }: ModelDevelopmentGridProps) => {
   return (
     <div className="grid gap-4">
       {aspects.map((aspect, index) => (
@@ -16,6 +17,7 @@ export const ModelDevelopmentGrid = ({ aspects, onAspectClick, onFindingsChange 
           aspect={aspect}
           onClick={() => onAspectClick(index)}
           onFindingsChange={(findings) => onFindingsChange(index, findings)}
+          onOwnersChange={(owners) => onOwnersChange(index, owners)}
         />
       ))}
     </div>

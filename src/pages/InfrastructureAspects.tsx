@@ -182,6 +182,38 @@ const InfrastructureAspects = () => {
     }
   };
 
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error: aspectError } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Solution",
+          practice_name: `Infrastructure:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (aspectError) throw aspectError;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], owners };
+      setAspects(newAspects);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
+  };
+
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
       toast.error("Project name and assessment date are required");
@@ -215,7 +247,7 @@ const InfrastructureAspects = () => {
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Infrastructure Aspects</h1>
@@ -231,6 +263,7 @@ const InfrastructureAspects = () => {
               aspect={aspect}
               onClick={() => handleAspectClick(index)}
               onFindingsChange={(findings) => handleFindingsChange(index, findings)}
+              onOwnersChange={(owners) => handleOwnersChange(index, owners)}
             />
           ))}
         </div>

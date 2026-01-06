@@ -13,7 +13,7 @@ export default function CollaborationAspects() {
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
   
-  const { aspects, handleAspectClick, handleFindingsChange } = useCollaborationAspects(projectName, assessmentDate);
+  const { aspects, handleAspectClick, handleFindingsChange, handleOwnersChange } = useCollaborationAspects(projectName, assessmentDate);
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
@@ -70,6 +70,7 @@ export default function CollaborationAspects() {
               aspect={aspect}
               onClick={() => handleAspectClick(index)}
               onFindingsChange={(findings) => handleFindingsChange(index, findings)}
+              onOwnersChange={(owners) => handleOwnersChange(index, owners)}
             />
           ))}
         </div>

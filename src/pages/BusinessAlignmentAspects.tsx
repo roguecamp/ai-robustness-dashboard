@@ -13,7 +13,7 @@ export default function BusinessAlignmentAspects() {
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
   
-  const { aspects, handleAspectClick, handleFindingsChange } = useBusinessAlignmentAspects(projectName, assessmentDate);
+  const { aspects, handleAspectClick, handleFindingsChange, handleOwnersChange } = useBusinessAlignmentAspects(projectName, assessmentDate);
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
@@ -57,6 +57,7 @@ export default function BusinessAlignmentAspects() {
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
+          onOwnersChange={handleOwnersChange}
         />
         <div className="flex justify-end">
           <Button onClick={handleSave}>Save Overall Rating</Button>

@@ -6,9 +6,10 @@ interface AspectCardProps {
   aspect: BusinessAlignmentAspect;
   onClick: () => void;
   onFindingsChange: (findings: string) => void;
+  onOwnersChange: (owners: string) => void;
 }
 
-export const AspectCard = ({ aspect, onClick, onFindingsChange }: AspectCardProps) => {
+export const AspectCard = ({ aspect, onClick, onFindingsChange, onOwnersChange }: AspectCardProps) => {
   const getRatingColor = (rating: BusinessAlignmentAspect["rating"]) => {
     switch (rating) {
       case "Largely in Place":
@@ -22,10 +23,6 @@ export const AspectCard = ({ aspect, onClick, onFindingsChange }: AspectCardProp
     }
   };
 
-  const handleFindingsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onFindingsChange(e.target.value);
-  };
-
   return (
     <div className="flex gap-4">
       <Card
@@ -35,11 +32,19 @@ export const AspectCard = ({ aspect, onClick, onFindingsChange }: AspectCardProp
         <h3 className="font-semibold">{aspect.name}</h3>
         <p className="text-sm mt-1">{aspect.description}</p>
       </Card>
+      <div className="w-48">
+        <Textarea
+          placeholder="Enter owner(s)..."
+          value={aspect.owners || ""}
+          onChange={(e) => onOwnersChange(e.target.value)}
+          className="h-full min-h-[100px] resize-none"
+        />
+      </div>
       <div className="w-96">
         <Textarea
           placeholder="Enter findings..."
           value={aspect.findings || ""}
-          onChange={handleFindingsChange}
+          onChange={(e) => onFindingsChange(e.target.value)}
           className="h-full min-h-[100px] resize-none"
         />
       </div>

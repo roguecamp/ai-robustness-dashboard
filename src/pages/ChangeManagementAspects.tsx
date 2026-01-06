@@ -12,43 +12,50 @@ const changeManagementAspects: ChangeManagementAspect[] = [
     name: "Change Strategy",
     description: "Clearly defined and communicated change management strategy for AI transformation.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Employee Engagement",
     description: "Level of employee engagement during AI-driven changes.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Communication Channels",
     description: "Effective communication channels for addressing concerns and sharing progress.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Change Metrics",
     description: "Metrics to evaluate the success of change management initiatives.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Resistance Management",
     description: "Strategies to manage resistance to new AI technologies.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Support Structures",
     description: "Availability of support structures to assist employees during the transition.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Change Network",
     description: "Establishing a network of change advocates within the organization.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
@@ -68,7 +75,7 @@ const ChangeManagementAspects = () => {
       try {
         const { data: ratings, error } = await supabase
           .from('ratings')
-          .select('practice_name, rating, findings')
+          .select('practice_name, rating, findings, owners')
           .eq('project_name', projectName)
           .eq('assessment_date', assessmentDate)
           .eq('pillar_title', 'People')
@@ -82,7 +89,8 @@ const ChangeManagementAspects = () => {
             return {
               ...aspect,
               rating: matchingRating?.rating as ChangeManagementAspect["rating"] || null,
-              findings: matchingRating?.findings || ""
+              findings: matchingRating?.findings || "",
+              owners: matchingRating?.owners || ""
             };
           });
           setAspects(updatedAspects);
@@ -147,6 +155,38 @@ const ChangeManagementAspects = () => {
     }
   };
 
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) return;
+
+    try {
+      const { error } = await supabase
+        .from('ratings')
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: 'People',
+          practice_name: `ChangeManagement:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = {
+        ...aspects[index],
+        owners: owners
+      };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
+  };
+
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
       toast.error("Missing project information");
@@ -165,7 +205,8 @@ const ChangeManagementAspects = () => {
             pillar_title: 'People',
             practice_name: `ChangeManagement:${aspect.name}`,
             rating: aspect.rating,
-            findings: aspect.findings
+            findings: aspect.findings,
+            owners: aspect.owners
           }, {
             onConflict: 'project_name,assessment_date,pillar_title,practice_name'
           });
@@ -223,6 +264,7 @@ const ChangeManagementAspects = () => {
               aspect={aspect}
               onClick={() => handleAspectClick(index)}
               onFindingsChange={(findings) => handleFindingsChange(index, findings)}
+              onOwnersChange={(owners) => handleOwnersChange(index, owners)}
             />
           ))}
         </div>
