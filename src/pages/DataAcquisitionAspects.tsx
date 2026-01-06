@@ -12,43 +12,50 @@ const dataAcquisitionAspects: DataAcquisitionAspect[] = [
     name: "Data Collection",
     description: "Data Needed is sourced and available",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Quality Metrics",
     description: "Confirm the Data trustworthy to use",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Validation",
     description: "Processes for validating and cleaning data.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Annotation",
     description: "Tools and processes for annotating data, if necessary.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Updates and Relevance",
     description: "Regular updates to ensure data relevance to solutions.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Structure",
     description: "Structured and labeling requirements or use of unstructured data",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Source Diversity",
     description: "Variety in data sources to ensure comprehensive data collection.",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 

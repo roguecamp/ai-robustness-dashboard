@@ -12,43 +12,50 @@ const initialAspects: DataGovernanceAspect[] = [
     name: "Data Quality",
     description: "Processes for ensuring data quality and accuracy",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Security",
     description: "Measures to protect data from unauthorized access",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Privacy",
     description: "Compliance with data privacy regulations",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Governance Framework",
     description: "Established framework for data governance",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Lifecycle Management",
     description: "Processes for managing data throughout its lifecycle",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Stewardship",
     description: "Roles and responsibilities for data stewardship",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   },
   {
     name: "Data Access Controls",
     description: "Controls to manage access to data",
     rating: null,
-    findings: ""
+    findings: "",
+    owners: ""
   }
 ];
 
