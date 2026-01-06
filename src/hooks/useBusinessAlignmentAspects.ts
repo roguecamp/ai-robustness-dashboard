@@ -71,20 +71,20 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
           .eq("project_name", projectName)
           .eq("assessment_date", assessmentDate)
           .eq("pillar_title", "Strategy")
-          .eq("practice_name", "Business Alignment");
+          .like("practice_name", "Business:%");
 
         if (error) throw error;
 
         if (ratings && ratings.length > 0) {
           console.log("Loaded ratings:", ratings);
-          const savedAspects = [...aspects];
+          const savedAspects = [...initialAspects];
           ratings.forEach(rating => {
+            const aspectName = rating.practice_name.replace("Business:", "");
             const aspectIndex = savedAspects.findIndex(
-              aspect => aspect.name === rating.practice_name
+              aspect => aspect.name === aspectName
             );
-            if (aspectIndex !== -1 && rating.rating) {
-              const typedRating = rating.rating as RatingLevel;
-              savedAspects[aspectIndex].rating = typedRating;
+            if (aspectIndex !== -1) {
+              savedAspects[aspectIndex].rating = rating.rating as RatingLevel;
               savedAspects[aspectIndex].findings = rating.findings || "";
               savedAspects[aspectIndex].owners = (rating as any).owners || "";
             }
@@ -100,7 +100,12 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     loadRatings();
   }, [projectName, assessmentDate]);
 
-  const handleAspectClick = (index: number) => {
+  const handleAspectClick = async (index: number) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     const ratings: RatingLevel[] = [
       "Largely in Place",
       "Somewhat in Place",
@@ -111,21 +116,94 @@ export const useBusinessAlignmentAspects = (projectName: string | null, assessme
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
     const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
-    const newAspects = [...aspects];
-    newAspects[index] = { ...aspects[index], rating: nextRating };
-    setAspects(newAspects);
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Strategy",
+          practice_name: `Business:${aspects[index].name}`,
+          rating: nextRating,
+          findings: aspects[index].findings,
+          owners: aspects[index].owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], rating: nextRating };
+      setAspects(newAspects);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
   };
 
-  const handleFindingsChange = (index: number, findings: string) => {
-    const newAspects = [...aspects];
-    newAspects[index] = { ...aspects[index], findings };
-    setAspects(newAspects);
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Strategy",
+          practice_name: `Business:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings,
+          owners: aspects[index].owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], findings };
+      setAspects(newAspects);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
+    }
   };
 
-  const handleOwnersChange = (index: number, owners: string) => {
-    const newAspects = [...aspects];
-    newAspects[index] = { ...aspects[index], owners };
-    setAspects(newAspects);
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Strategy",
+          practice_name: `Business:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const newAspects = [...aspects];
+      newAspects[index] = { ...aspects[index], owners };
+      setAspects(newAspects);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
   };
 
   return {

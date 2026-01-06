@@ -5,29 +5,29 @@ import type { DataGovernanceAspect } from "@/types/data-governance";
 
 const initialAspects: DataGovernanceAspect[] = [
   {
-    name: "Governance Framework",
+    name: "Data Governance Framework",
     description: "Established data governance framework with clear policies and procedures.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Data Ownership",
+    name: "Data Stewardship",
     description: "Defined data ownership and stewardship roles.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Metadata Management",
-    description: "Effective metadata management for data discoverability and understanding.",
+    name: "Data Quality",
+    description: "Processes to ensure and enhance data quality.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Data Quality Management",
-    description: "Processes to ensure and enhance data quality.",
+    name: "Data Access Controls",
+    description: "Role-based access controls to restrict data access.",
     rating: null,
     findings: "",
     owners: ""
@@ -40,15 +40,15 @@ const initialAspects: DataGovernanceAspect[] = [
     owners: ""
   },
   {
-    name: "Data Governance Tools",
-    description: "Tools to enforce data governance policies.",
+    name: "Data Security",
+    description: "Security measures to protect data from unauthorized access.",
     rating: null,
     findings: "",
     owners: ""
   },
   {
-    name: "Compliance Monitoring",
-    description: "Monitoring and ensuring compliance with data governance policies.",
+    name: "Data Privacy",
+    description: "Ensuring data privacy compliance and protection.",
     rating: null,
     findings: "",
     owners: ""
@@ -102,42 +102,110 @@ export const useDataGovernanceAspects = (projectName: string | null, assessmentD
     loadAspectRatings();
   }, [projectName, assessmentDate]);
 
-  const handleAspectClick = (index: number) => {
+  const handleAspectClick = async (index: number) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
     const ratings: DataGovernanceAspect["rating"][] = [
       "Largely in Place",
       "Somewhat in Place",
       "Not in Place"
     ];
     
-    const updatedAspects = [...aspects];
     const currentRating = aspects[index].rating;
     const currentIndex = currentRating ? ratings.indexOf(currentRating) : -1;
-    const nextIndex = (currentIndex + 1) % ratings.length;
+    const nextRating = ratings[(currentIndex + 1) % ratings.length];
     
-    updatedAspects[index] = {
-      ...aspects[index],
-      rating: ratings[nextIndex]
-    };
-    
-    setAspects(updatedAspects);
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Data",
+          practice_name: `DataGovernance:${aspects[index].name}`,
+          rating: nextRating,
+          findings: aspects[index].findings,
+          owners: aspects[index].owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], rating: nextRating };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating aspect rating:", error);
+      toast.error("Failed to update rating");
+    }
   };
 
-  const handleFindingsChange = (index: number, findings: string) => {
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      findings
-    };
-    setAspects(updatedAspects);
+  const handleFindingsChange = async (index: number, findings: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Data",
+          practice_name: `DataGovernance:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: findings,
+          owners: aspects[index].owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], findings };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating findings:", error);
+      toast.error("Failed to update findings");
+    }
   };
 
-  const handleOwnersChange = (index: number, owners: string) => {
-    const updatedAspects = [...aspects];
-    updatedAspects[index] = {
-      ...aspects[index],
-      owners
-    };
-    setAspects(updatedAspects);
+  const handleOwnersChange = async (index: number, owners: string) => {
+    if (!projectName || !assessmentDate) {
+      toast.error("Project name and assessment date are required");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("ratings")
+        .upsert({
+          project_name: projectName,
+          assessment_date: assessmentDate,
+          pillar_title: "Data",
+          practice_name: `DataGovernance:${aspects[index].name}`,
+          rating: aspects[index].rating,
+          findings: aspects[index].findings,
+          owners: owners
+        }, {
+          onConflict: 'project_name,assessment_date,pillar_title,practice_name'
+        });
+
+      if (error) throw error;
+
+      const updatedAspects = [...aspects];
+      updatedAspects[index] = { ...aspects[index], owners };
+      setAspects(updatedAspects);
+    } catch (error) {
+      console.error("Error updating owners:", error);
+      toast.error("Failed to update owners");
+    }
   };
 
   return {

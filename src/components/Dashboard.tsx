@@ -8,6 +8,7 @@ import { PillarGrid } from "./dashboard/PillarGrid";
 import { SaveRatingsButton } from "./dashboard/SaveRatingsButton";
 import { useDashboardStore } from "./dashboard/DashboardState";
 import { Pillar, KeyPractice, RatingLevel } from "@/types/ratings";
+import { practiceToAspectPrefix, calculateRatingFromAspects } from "@/utils/practiceRatingCalculator";
 
 const pillars: Pillar[] = [
   {
@@ -85,12 +86,6 @@ const isValidRating = (rating: string | null): rating is RatingLevel => {
          rating === "Not in Place";
 };
 
-const extractBasePracticeName = (practiceName: string): string => {
-  // If the practice name contains a colon, take the part after it
-  const colonIndex = practiceName.indexOf(':');
-  return colonIndex !== -1 ? practiceName.substring(colonIndex + 1).trim() : practiceName;
-};
-
 export const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { 
@@ -146,40 +141,78 @@ export const Dashboard = () => {
           
           // Initialize all pillars with default practices
           pillars.forEach(pillar => {
-            pillarRatingsMap[pillar.title] = [...pillar.keyPractices];
+            pillarRatingsMap[pillar.title] = pillar.keyPractices.map(p => ({ ...p }));
           });
 
-          // Update with actual ratings from database
+          // Group aspect ratings by practice
+          const aspectRatingsByPractice: Record<string, Record<string, (string | null)[]>> = {};
+          
+          pillars.forEach(pillar => {
+            aspectRatingsByPractice[pillar.title] = {};
+            pillar.keyPractices.forEach(practice => {
+              aspectRatingsByPractice[pillar.title][practice.name] = [];
+            });
+          });
+
+          // Process all ratings
           ratings.forEach(rating => {
             const pillarTitle = rating.pillar_title;
             const practiceName = rating.practice_name;
-            const basePracticeName = extractBasePracticeName(practiceName);
             
-            // Find the pillar and practice that this rating belongs to
-            const pillar = pillars.find(p => p.title === pillarTitle);
-            if (pillar) {
-              const practice = pillar.keyPractices.find(p => 
-                p.name === basePracticeName || 
-                p.name === practiceName ||
-                practiceName.startsWith(`${p.name}:`)
-              );
-
-              if (practice && isValidRating(rating.rating)) {
-                const practiceIndex = pillarRatingsMap[pillarTitle].findIndex(
-                  p => p.name === practice.name
-                );
-                
-                if (practiceIndex !== -1) {
-                  pillarRatingsMap[pillarTitle][practiceIndex] = {
-                    name: practice.name,
-                    rating: rating.rating,
-                    findings: rating.findings || null,
-                    owners: (rating as any).owners || null
-                  };
-                  console.log(`Updated rating for ${pillarTitle} - ${practice.name}:`, rating.rating);
+            // Check if this is a main practice rating (no colon)
+            if (!practiceName.includes(':')) {
+              // This is a main practice rating - only use if valid
+              const pillar = pillars.find(p => p.title === pillarTitle);
+              if (pillar) {
+                const practice = pillar.keyPractices.find(p => p.name === practiceName);
+                if (practice && isValidRating(rating.rating)) {
+                  const practiceIndex = pillarRatingsMap[pillarTitle].findIndex(
+                    p => p.name === practice.name
+                  );
+                  if (practiceIndex !== -1) {
+                    // Only set if we don't have aspect ratings to calculate from
+                    pillarRatingsMap[pillarTitle][practiceIndex] = {
+                      name: practice.name,
+                      rating: rating.rating,
+                      findings: rating.findings || null,
+                      owners: (rating as any).owners || null
+                    };
+                  }
+                }
+              }
+            } else {
+              // This is an aspect rating - collect it for calculation
+              const pillar = pillars.find(p => p.title === pillarTitle);
+              if (pillar) {
+                // Find which practice this aspect belongs to
+                for (const practice of pillar.keyPractices) {
+                  const prefix = practiceToAspectPrefix[practice.name];
+                  if (prefix && practiceName.startsWith(prefix)) {
+                    aspectRatingsByPractice[pillarTitle][practice.name].push(rating.rating);
+                    break;
+                  }
                 }
               }
             }
+          });
+
+          // Calculate overall ratings from aspects where available
+          pillars.forEach(pillar => {
+            pillar.keyPractices.forEach(practice => {
+              const aspectRatings = aspectRatingsByPractice[pillar.title][practice.name];
+              if (aspectRatings.length > 0) {
+                const calculatedRating = calculateRatingFromAspects(aspectRatings);
+                if (calculatedRating) {
+                  const practiceIndex = pillarRatingsMap[pillar.title].findIndex(
+                    p => p.name === practice.name
+                  );
+                  if (practiceIndex !== -1) {
+                    pillarRatingsMap[pillar.title][practiceIndex].rating = calculatedRating;
+                    console.log(`Calculated rating for ${pillar.title} - ${practice.name} from ${aspectRatings.length} aspects:`, calculatedRating);
+                  }
+                }
+              }
+            });
           });
 
           console.log('Setting pillar ratings:', pillarRatingsMap);
