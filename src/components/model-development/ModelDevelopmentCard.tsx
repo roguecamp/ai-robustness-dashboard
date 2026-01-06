@@ -17,7 +17,7 @@ export const ModelDevelopmentCard = ({ aspect, onClick, onFindingsChange, onOwne
       case "Somewhat in Place":
         return "bg-yellow-400";
       case "Not in Place":
-        return "bg-white border border-gray-200";
+        return "bg-red-300";
       default:
         return "bg-gray-100 border border-gray-200";
     }

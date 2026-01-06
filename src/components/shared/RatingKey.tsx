@@ -12,7 +12,7 @@ export const RatingKey = () => {
           <span className="text-sm">Somewhat in Place</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-white border border-gray-200"></div>
+          <div className="w-4 h-4 rounded bg-red-300"></div>
           <span className="text-sm">Not in Place</span>
         </div>
       </div>
