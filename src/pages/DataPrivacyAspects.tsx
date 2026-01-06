@@ -12,7 +12,7 @@ const DataPrivacyAspects = () => {
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
   
-  const { aspects, handleAspectClick, handleFindingsChange } = useDataPrivacyAspects(projectName, assessmentDate);
+  const { aspects, handleAspectClick, handleFindingsChange, handleOwnersChange } = useDataPrivacyAspects(projectName, assessmentDate);
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
@@ -81,6 +81,7 @@ const DataPrivacyAspects = () => {
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
+          onOwnersChange={handleOwnersChange}
         />
 
         <div className="flex justify-end">

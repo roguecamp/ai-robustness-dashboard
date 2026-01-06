@@ -12,7 +12,7 @@ export default function EthicalConsiderationsAspects() {
   const projectName = searchParams.get("project");
   const assessmentDate = searchParams.get("date");
   
-  const { aspects, handleAspectClick, handleFindingsChange } = useEthicalConsiderationsAspects(projectName, assessmentDate);
+  const { aspects, handleAspectClick, handleFindingsChange, handleOwnersChange } = useEthicalConsiderationsAspects(projectName, assessmentDate);
 
   const handleSave = async () => {
     if (!projectName || !assessmentDate) {
@@ -63,6 +63,7 @@ export default function EthicalConsiderationsAspects() {
           aspects={aspects}
           onAspectClick={handleAspectClick}
           onFindingsChange={handleFindingsChange}
+          onOwnersChange={handleOwnersChange}
         />
 
         <div className="flex justify-end">
