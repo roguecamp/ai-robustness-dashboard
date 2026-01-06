@@ -127,7 +127,7 @@ export const PillarCard = ({
       case "Largely in Place":
         return "bg-green-700 text-white";
       case "Somewhat in Place":
-        return "bg-green-300 text-gray-900";
+        return "bg-yellow-400 text-gray-900";
       case "Not in Place":
         return "bg-white border border-gray-200 text-gray-900";
       default:

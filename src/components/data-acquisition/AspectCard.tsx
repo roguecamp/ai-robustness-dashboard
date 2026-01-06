@@ -15,7 +15,7 @@ export const AspectCard = ({ aspect, onClick, onFindingsChange, onOwnersChange }
       case "Largely in Place":
         return "bg-green-700 text-white";
       case "Somewhat in Place":
-        return "bg-green-300";
+        return "bg-yellow-400";
       case "Not in Place":
         return "bg-white border border-gray-200";
       default:
