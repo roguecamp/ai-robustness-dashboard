@@ -107,16 +107,16 @@ export const Dashboard = () => {
     const projectParam = searchParams.get('project');
     const dateParam = searchParams.get('date');
     
-    if (projectParam && !projectName) {
+    if (projectParam && projectParam !== projectName) {
       console.log('Setting project name from URL:', projectParam);
       setProjectName(projectParam);
     }
     
-    if (dateParam && !assessmentDate) {
+    if (dateParam && dateParam !== assessmentDate) {
       console.log('Setting assessment date from URL:', dateParam);
       setAssessmentDate(dateParam);
     }
-  }, [searchParams, projectName, assessmentDate]);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!projectName || !assessmentDate) {
